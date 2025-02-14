@@ -1,11 +1,5 @@
 package com.rv.dto;
 
-import com.rv.model.Products;
-import com.rv.model.UserEntity;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-
 import java.time.LocalDateTime;
 import java.util.List;
 

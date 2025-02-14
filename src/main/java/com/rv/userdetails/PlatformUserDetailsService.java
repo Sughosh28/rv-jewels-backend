@@ -1,7 +1,7 @@
 package com.rv.userdetails;
 
 import com.rv.model.UserEntity;
-import com.rv.repository.UsersRepository;
+import com.rv.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,7 +14,7 @@ import java.util.Collections;
 @Service
 public class PlatformUserDetailsService implements UserDetailsService {
     @Autowired
-    private  UsersRepository userRepository;
+    private UserRepository userRepository;
 
 
     @Override

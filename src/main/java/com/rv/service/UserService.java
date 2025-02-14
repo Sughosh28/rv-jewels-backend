@@ -3,7 +3,7 @@ package com.rv.service;
 import com.rv.dto.LoginDTO;
 import com.rv.jwt.JwtService;
 import com.rv.model.UserEntity;
-import com.rv.repository.UsersRepository;
+import com.rv.repository.UserRepository;
 import com.rv.userdetails.PlatformUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,7 +24,7 @@ import java.util.Map;
 public class UserService {
 
     @Autowired
-    private UsersRepository userRepository;
+    private UserRepository userRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
