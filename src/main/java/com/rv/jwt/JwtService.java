@@ -1,6 +1,6 @@
 package com.rv.jwt;
 
-import com.rv.repository.UsersRepository;
+import com.rv.repository.UserRepository;
 import com.rv.userdetails.PlatformUserDetails;
 import com.rv.userdetails.PlatformUserDetailsService;
 import io.jsonwebtoken.Claims;
@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class JwtService {
     @Autowired
-    private UsersRepository userRepository;
+    private UserRepository userRepository;
     @Autowired
     private PlatformUserDetailsService platformUserDetailsService;
 

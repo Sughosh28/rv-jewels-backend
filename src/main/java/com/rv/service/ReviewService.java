@@ -7,14 +7,13 @@ import com.rv.model.Review;
 import com.rv.model.UserEntity;
 import com.rv.repository.ProductRepository;
 import com.rv.repository.ReviewRepository;
-import com.rv.repository.UsersRepository;
+import com.rv.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -26,7 +25,7 @@ public class ReviewService {
     @Autowired
     private JwtService jwtService;
     @Autowired
-    private UsersRepository usersRepository;
+    private UserRepository userRepository;
     @Autowired
     private ProductRepository productRepository;
 
@@ -35,7 +34,7 @@ public class ReviewService {
             Long userId = jwtService.extractUserId(token);
             System.out.println(userId);
 
-            Optional<UserEntity> userEntity = usersRepository.findById(userId);
+            Optional<UserEntity> userEntity = userRepository.findById(userId);
             System.out.println(userEntity);
             if (userEntity.isEmpty()) {
                 return new ResponseEntity<>("User does not exist!", HttpStatus.UNAUTHORIZED);
@@ -99,7 +98,7 @@ public class ReviewService {
     public ResponseEntity<?> deleteReview(String token, Long productId, Long reviewId) {
         try {
             Long userId = jwtService.extractUserId(token);
-            Optional<UserEntity> userEntity = usersRepository.findById(userId);
+            Optional<UserEntity> userEntity = userRepository.findById(userId);
             System.out.println(userEntity);
             if (userEntity.isEmpty()) {
                 return new ResponseEntity<>("User does not exist!", HttpStatus.UNAUTHORIZED);

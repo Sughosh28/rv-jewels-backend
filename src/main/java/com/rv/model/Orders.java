@@ -24,9 +24,6 @@ public class Orders extends BaseOrder {
     @Enumerated(EnumType.STRING)
     private DeliveryStatus deliveryStatus;
 
-    @ManyToOne
-    @JoinColumn(name = "delivery_address_id")
-    private Addresses deliveryAddress;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderItems> orderItems;
