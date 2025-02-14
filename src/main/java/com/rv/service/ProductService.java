@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 public class ProductService {
     @Autowired
     private ProductRepository productRepository;
+    @Autowired
+    private ReviewService reviewService;
 
     public ResponseEntity<?> addNewProduct(Products product) {
         try {
@@ -44,7 +46,13 @@ public class ProductService {
 
     public ResponseEntity<?> getAllProducts() {
         try {
-            return new ResponseEntity<>(productRepository.findAll(), HttpStatus.OK);
+            List<Products> products = productRepository.findAll();
+            for (Products product : products) {
+                Double averageRating = reviewService.calculateProductAverageRating(product.getId());
+                product.setAverageRating(averageRating);
+            }
+            productRepository.saveAll(products);
+            return new ResponseEntity<>(products, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
@@ -100,6 +108,9 @@ public class ProductService {
         try {
             Products product = productRepository.findById(productId)
                     .orElseThrow(RuntimeException::new);
+            Double averageRating = reviewService.calculateProductAverageRating(productId);
+            product.setAverageRating(averageRating);
+            productRepository.save(product);
             return new ResponseEntity<>(product, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -220,4 +231,6 @@ public class ProductService {
                 .average()
                 .orElse(0.0);
     }
+
+
 }

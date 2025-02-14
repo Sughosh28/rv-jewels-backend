@@ -11,7 +11,7 @@ import jakarta.validation.constraints.Size;
 public class UserEntity extends UserEntityAbstract {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @Column(unique = true)
     private String username;
@@ -28,7 +28,7 @@ public class UserEntity extends UserEntityAbstract {
     public UserEntity() {
     }
 
-    public UserEntity(int id, String username, String password, String email, String role) {
+    public UserEntity(Long id, String username, String password, String email, String role) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -36,11 +36,11 @@ public class UserEntity extends UserEntityAbstract {
         this.role = role;
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
