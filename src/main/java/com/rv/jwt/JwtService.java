@@ -20,11 +20,13 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class JwtService {
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private PlatformUserDetailsService platformUserDetailsService;
+    private final UserRepository userRepository;
+    private final PlatformUserDetailsService platformUserDetailsService;
 
+    public JwtService(UserRepository userRepository, PlatformUserDetailsService platformUserDetailsService) {
+        this.userRepository = userRepository;
+        this.platformUserDetailsService = platformUserDetailsService;
+    }
 
     private static final String SECRET = "E04B0D4916B6152E70C09B03FCE4FE5F85353C884E280669E76AA70E69EF78207275B0539310CCEF09E11808690ACF03B8FE28C614A5606684BA4972AC19AEF8";
     private static final Long DURATION = TimeUnit.MINUTES.toMillis(45);

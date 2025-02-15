@@ -29,11 +29,13 @@ import java.util.Arrays;
 @Configuration
 public class SecurityConfig implements WebMvcConfigurer {
 
-    @Autowired
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
-    @Autowired
-    private PlatformUserDetailsService platformUserDetailsService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final PlatformUserDetailsService platformUserDetailsService;
 
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, PlatformUserDetailsService platformUserDetailsService) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.platformUserDetailsService = platformUserDetailsService;
+    }
 
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")

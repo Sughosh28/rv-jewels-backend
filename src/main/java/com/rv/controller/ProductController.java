@@ -13,8 +13,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/admin")
 public class ProductController {
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService;
+
+    public ProductController(ProductService productService) {
+        this.productService = productService;
+    }
 
     @PostMapping("/add-new-product")
     public ResponseEntity<?> addNewProduct(@RequestHeader("Authorization") String token, @RequestBody Products product) {

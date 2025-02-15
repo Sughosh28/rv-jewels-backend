@@ -1,6 +1,7 @@
 package com.rv.controller;
 
 import com.rv.dto.*;
+import com.rv.service.ProductService;
 import com.rv.service.ProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,8 +12,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/user")
 public class ProfileController {
 
-    @Autowired
-    private ProfileService profileService;
+    private final ProfileService profileService;
+    private final  ProductService productService;
+
+public ProfileController(ProfileService profileService, ProductService productService) {
+    this.profileService=profileService;
+    this.productService=productService;
+
+}
 
     @GetMapping("/profile")
     public UserProfileResponseDTO getUserProfile(@RequestHeader("Authorization") String token) {
@@ -60,6 +67,14 @@ public class ProfileController {
         }
         String authToken = token.substring(7);
         return new ResponseEntity<>(profileService.updatePhoneNumber(authToken, phoneUpdateDTO), HttpStatus.OK);
+    }
+
+    @GetMapping("/all-products")
+    public ResponseEntity<?> getAllProducts(@RequestHeader("Authorization") String token) {
+        if (token == null || token.isEmpty()) {
+            return new ResponseEntity<>("Authentication is missing", HttpStatus.UNAUTHORIZED);
+        }
+        return new ResponseEntity<>(productService.getAllProducts(), HttpStatus.OK);
     }
 
 }

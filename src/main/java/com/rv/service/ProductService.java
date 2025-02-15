@@ -3,6 +3,8 @@ package com.rv.service;
 import com.rv.model.Products;
 import com.rv.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -15,13 +17,19 @@ import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
-    @Autowired
-    private ProductRepository productRepository;
-    @Autowired
-    private ReviewService reviewService;
+    private final ProductRepository productRepository;
+    private final ReviewService reviewService;
+
+    public ProductService(ProductRepository productRepository, ReviewService reviewService) {
+        this.productRepository = productRepository;
+        this.reviewService = reviewService;
+    }
 
     public ResponseEntity<?> addNewProduct(Products product) {
         try {
+            if (product.getName() == null || product.getPrice() == null) {
+                return new ResponseEntity<>("Product name and price are required!", HttpStatus.BAD_REQUEST);
+            }
 
             Products newProduct = new Products();
             newProduct.setName(product.getName());
@@ -44,7 +52,9 @@ public class ProductService {
         }
     }
 
+    @Cacheable(value = "allProducts")
     public ResponseEntity<?> getAllProducts() {
+        System.out.println("Hit success for product service!");
         try {
             List<Products> products = productRepository.findAll();
             for (Products product : products) {
@@ -58,10 +68,12 @@ public class ProductService {
         }
     }
 
+    @CacheEvict(value = {"products", "allProducts", "productsByCategory"}, allEntries = true)
     public ResponseEntity<?> updateProduct(Long productId, Products product) {
         try {
             Products productEntity = productRepository.findById(productId)
-                    .orElseThrow(RuntimeException::new);
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
+
             productEntity.setName(product.getName());
             productEntity.setDescription(product.getDescription());
             productEntity.setPrice(product.getPrice());
@@ -83,6 +95,7 @@ public class ProductService {
         }
     }
 
+    @CacheEvict(value = {"products", "allProducts", "productsByCategory"}, allEntries = true)
     public ResponseEntity<?> deleteProduct(Long productId) {
         try {
             productRepository.deleteById(productId);
@@ -92,6 +105,7 @@ public class ProductService {
         }
     }
 
+    @Cacheable(value = "searchedProducts", key = "#keyword")
     public ResponseEntity<?> searchProducts(String keyword) {
         try {
             List<Products> product = productRepository.findByNameContainingIgnoreCase(keyword);
@@ -104,19 +118,24 @@ public class ProductService {
         }
     }
 
+    @Cacheable(value = "products", key = "#productId")
     public ResponseEntity<?> getProductById(Long productId) {
         try {
-            Products product = productRepository.findById(productId)
-                    .orElseThrow(RuntimeException::new);
+            Optional<Products> productOpt = productRepository.findById(productId);
+            if (productOpt.isEmpty()) {
+                return new ResponseEntity<>("Product not found!", HttpStatus.NOT_FOUND);
+            }
+            Products productEntity=productOpt.get();
             Double averageRating = reviewService.calculateProductAverageRating(productId);
-            product.setAverageRating(averageRating);
-            productRepository.save(product);
-            return new ResponseEntity<>(product, HttpStatus.OK);
+            productEntity.setAverageRating(averageRating);
+            productRepository.save(productEntity);
+            return new ResponseEntity<>(productEntity, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
+    @Cacheable(value = "productsByCategory", key = "#category")
     public ResponseEntity<?> getProductsByCategory(Products.ProductCategory category) {
         try {
             List<Products> products = productRepository.findByCategory(category);
@@ -130,6 +149,7 @@ public class ProductService {
     }
 
 
+    @Cacheable(value = "productsByPrice", key = "#minPrice + '-' + #maxPrice")
     public ResponseEntity<?> getProductsByPriceRange(double minPrice, double maxPrice) {
         try {
             return new ResponseEntity<>(productRepository.findByPriceBetween(minPrice, maxPrice), HttpStatus.OK);
@@ -148,6 +168,7 @@ public class ProductService {
         }
     }
 
+    @CacheEvict(value = {"products", "allProducts", "productsByCategory"}, allEntries = true)
     public ResponseEntity<?> updateProductStock(Long productId, Integer quantity) {
         try {
             Products product = productRepository.findById(productId)
@@ -160,6 +181,7 @@ public class ProductService {
         }
     }
 
+    @Cacheable(value = "inventoryAnalytics", key = "'inventory'")
     public Map<String, Object> getInventoryAnalytics() {
         try {
             Map<String, Object> analytics = new HashMap<>();
@@ -188,6 +210,7 @@ public class ProductService {
         }
     }
 
+    @Cacheable(value = "categoryAnalytics", key = "'categories'")
     public Map<String, Object> getCategoryAnalytics() {
         try {
             Map<String, Object> categoryAnalytics = new HashMap<>();

@@ -9,6 +9,8 @@ import com.rv.repository.ProductRepository;
 import com.rv.repository.ReviewRepository;
 import com.rv.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -20,22 +22,24 @@ import java.util.stream.Collectors;
 
 @Service
 public class ReviewService {
-    @Autowired
-    private ReviewRepository reviewRepository;
-    @Autowired
-    private JwtService jwtService;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private ProductRepository productRepository;
+    private final ReviewRepository reviewRepository;
+    private final JwtService jwtService;
+    private final UserRepository userRepository;
+    private final ProductRepository productRepository;
 
+    public ReviewService(ReviewRepository reviewRepository, JwtService jwtService, UserRepository userRepository, ProductRepository productRepository) {
+        this.reviewRepository = reviewRepository;
+        this.jwtService = jwtService;
+        this.userRepository = userRepository;
+        this.productRepository = productRepository;
+    }
+
+    @CacheEvict(value = {"reviews", "averageRating", "totalReviews"}, key = "#productId")
     public ResponseEntity<?> addReview(String token, Long productId, ReviewRequest reviewRequest) {
         try {
             Long userId = jwtService.extractUserId(token);
-            System.out.println(userId);
 
             Optional<UserEntity> userEntity = userRepository.findById(userId);
-            System.out.println(userEntity);
             if (userEntity.isEmpty()) {
                 return new ResponseEntity<>("User does not exist!", HttpStatus.UNAUTHORIZED);
             }
@@ -59,7 +63,9 @@ public class ReviewService {
         }
     }
 
+    @Cacheable(value = "reviews", key = "#productId")
     public ResponseEntity<?> getReviews(Long productId) {
+        System.out.println("Review table DB hit");
         try {
             Products product = productRepository.findById(productId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product does not exist!"));
@@ -94,12 +100,11 @@ public class ReviewService {
         }
     }
 
-
+    @CacheEvict(value = {"reviews", "averageRating", "totalReviews"}, key = "#productId")
     public ResponseEntity<?> deleteReview(String token, Long productId, Long reviewId) {
         try {
             Long userId = jwtService.extractUserId(token);
             Optional<UserEntity> userEntity = userRepository.findById(userId);
-            System.out.println(userEntity);
             if (userEntity.isEmpty()) {
                 return new ResponseEntity<>("User does not exist!", HttpStatus.UNAUTHORIZED);
             }
@@ -122,6 +127,7 @@ public class ReviewService {
         }
     }
 
+    @Cacheable(value = "averageRating", key = "#productId")
     public double calculateProductAverageRating(Long productId) {
         List<Review> reviews = reviewRepository.findReviewsByProductId(productId);
         if (reviews.isEmpty()) {
@@ -135,6 +141,7 @@ public class ReviewService {
         return totalRating / reviews.size();
     }
 
+    @Cacheable(value = "totalReviews", key = "#productId")
     private Long countTotalReviews(Long productId) {
         return reviewRepository.countReviewsByProductId(productId);
     }

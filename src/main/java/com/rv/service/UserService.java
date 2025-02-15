@@ -23,16 +23,24 @@ import java.util.Map;
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
-    private PlatformUserDetailsService platformUserDetailsService;
-    @Autowired
-    private JwtService jwtService;
+    
+    private final UserRepository userRepository;
+    
+    private final PasswordEncoder passwordEncoder;
+    
+    private final AuthenticationManager authenticationManager;
+    
+    private final PlatformUserDetailsService platformUserDetailsService;
+    
+    private final JwtService jwtService;
+
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, PlatformUserDetailsService platformUserDetailsService, JwtService jwtService) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
+        this.platformUserDetailsService = platformUserDetailsService;
+        this.jwtService = jwtService;
+    }
 
     public ResponseEntity<?> registerUser(UserEntity user) {
         if (userRepository.findByUsername(user.getUsername()) != null) {
@@ -43,7 +51,6 @@ public class UserService {
         }
         try {
         String encodedPassword = passwordEncoder.encode(user.getPassword());
-        System.out.println(encodedPassword);
             UserEntity userEntity = new UserEntity();
             userEntity.setUsername(user.getUsername());
             userEntity.setPassword(encodedPassword);
