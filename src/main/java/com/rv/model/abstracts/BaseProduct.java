@@ -3,11 +3,11 @@ package com.rv.model.abstracts;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.math.BigDecimal;
 
 @MappedSuperclass
-@Getter
-@Setter
+
 public abstract class BaseProduct {
     @Id
     @GeneratedValue
@@ -22,6 +22,22 @@ public abstract class BaseProduct {
     private Boolean isFeatured;
     private String tags;
     private Double averageRating;
+
+    public Boolean getActive() {
+        return isActive;
+    }
+
+    public void setActive(Boolean active) {
+        isActive = active;
+    }
+
+    public Boolean getFeatured() {
+        return isFeatured;
+    }
+
+    public void setFeatured(Boolean featured) {
+        isFeatured = featured;
+    }
 
     @Column(length = 1000)
     private String specifications;
@@ -74,21 +90,6 @@ public abstract class BaseProduct {
         this.stockQuantity = stockQuantity;
     }
 
-    public Boolean getActive() {
-        return isActive;
-    }
-
-    public void setActive(Boolean active) {
-        isActive = active;
-    }
-
-    public Boolean getFeatured() {
-        return isFeatured;
-    }
-
-    public void setFeatured(Boolean featured) {
-        isFeatured = featured;
-    }
 
     public String getTags() {
         return tags;

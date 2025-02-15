@@ -1,5 +1,6 @@
 package com.rv.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rv.model.abstracts.BaseProduct;
 import jakarta.persistence.*;
 import lombok.*;
@@ -25,6 +26,7 @@ public class Products extends BaseProduct {
     private List<String> images;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Review> reviews;
 
 

@@ -5,6 +5,8 @@ import com.rv.jwt.JwtService;
 import com.rv.model.UserEntity;
 import com.rv.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -13,17 +15,22 @@ import java.util.Optional;
 
 @Service
 public class ProfileService {
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private JwtService jwtService;
+    private final UserRepository userRepository;
+    private final JwtService jwtService;
 
+    public ProfileService(UserRepository userRepository, JwtService jwtService) {
+        this.userRepository = userRepository;
+        this.jwtService = jwtService;
+    }
+
+    @Cacheable(value = "userProfiles", key = "#token")
     public UserProfileResponseDTO getUserProfile(String token) {
         Long userId = jwtService.extractUserId(token);
         Optional<UserEntity> user = userRepository.findById(userId);
         if (user.isEmpty()) {
             throw new RuntimeException("User does not exist!");
         }
+        System.out.println("Hit DB");
         return mapToDTO(user.get());
     }
 
@@ -40,6 +47,7 @@ public class ProfileService {
     }
 
 
+    @CacheEvict(value = "userProfiles", key = "#token")
     public ResponseEntity<?> updateProfileName(String token, UserProfileDTO userProfileDTO) {
 
         try {
@@ -58,6 +66,7 @@ public class ProfileService {
         }
     }
 
+    @CacheEvict(value = "userProfiles", key = "#token")
     public ResponseEntity<?> updateEmailAddress(String token, EmailUpdateRequestDTO emailUpdateRequestDTO) {
         try {
             Long userId = jwtService.extractUserId(token);
@@ -74,6 +83,7 @@ public class ProfileService {
         }
     }
 
+    @CacheEvict(value = "userProfiles", key = "#token")
     public ResponseEntity<?> updateAddress(String token, AddressUpdateDTO addressUpdateDTO) {
         try {
             Long userId = jwtService.extractUserId(token);
@@ -92,7 +102,8 @@ public class ProfileService {
         }
     }
 
-    public Object updatePhoneNumber(String token, PhoneNumberUpdateRequestDTO phoneUpdateDTO) {
+    @CacheEvict(value = "userProfiles", key = "#token")
+    public ResponseEntity<?> updatePhoneNumber(String token, PhoneNumberUpdateRequestDTO phoneUpdateDTO) {
         try {
             Long userId = jwtService.extractUserId(token);
             Optional<UserEntity> user = userRepository.findById(userId);

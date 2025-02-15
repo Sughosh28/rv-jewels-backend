@@ -2,7 +2,6 @@ package com.rv.controller;
 
 import com.rv.dto.ReviewRequest;
 import com.rv.service.ReviewService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,8 +9,11 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/user")
 public class ReviewController {
-    @Autowired
-    private ReviewService reviewService;
+    private final ReviewService reviewService;
+
+    public ReviewController(ReviewService reviewService) {
+        this.reviewService = reviewService;
+    }
 
     @PostMapping("/review/add-review/{productId}")
     public ResponseEntity<?> addReview(@RequestHeader("Authorization") String token, @PathVariable Long productId, @RequestBody ReviewRequest reviewRequest) {
