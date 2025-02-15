@@ -5,6 +5,7 @@ import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @MappedSuperclass
 public class UserEntityAbstract {
@@ -13,11 +14,27 @@ public class UserEntityAbstract {
     private String phoneNumber;
     private String address;
     private LocalDate registrationDate;
-
     @Size(min = 6, max = 6, message = "Pin code must be exactly 6 characters")
     @Column(nullable = false)
     private String pinCode;
+    private String otp;
+    private LocalDateTime otpExpiry;
 
+    public String getOtp() {
+        return otp;
+    }
+
+    public void setOtp(String otp) {
+        this.otp = otp;
+    }
+
+    public LocalDateTime getOtpExpiry() {
+        return otpExpiry;
+    }
+
+    public void setOtpExpiry(LocalDateTime otpExpiry) {
+        this.otpExpiry = otpExpiry;
+    }
 
     public String getPhoneNumber() {
         return phoneNumber;

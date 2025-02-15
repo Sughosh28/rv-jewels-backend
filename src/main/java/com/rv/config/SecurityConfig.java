@@ -52,9 +52,9 @@ public class SecurityConfig implements WebMvcConfigurer {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(registry -> {
-            registry.requestMatchers("/", "/register", "/login").permitAll();
-            registry.requestMatchers("/api/v1/admin/**").hasRole("ADMIN");
-            registry.requestMatchers("/api/v1/user/**").hasRole("USER");
+            registry.requestMatchers("/", "/api/v1/user").permitAll();
+            registry.requestMatchers("/api/v2/admin/**").hasRole("ADMIN");
+            registry.requestMatchers("/api/v2/user/**").hasRole("USER");
             registry.anyRequest().authenticated();
         })
                 .formLogin(AbstractHttpConfigurer::disable).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
