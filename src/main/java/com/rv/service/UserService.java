@@ -1,6 +1,7 @@
 package com.rv.service;
 
 import com.rv.dto.LoginDTO;
+import com.rv.dto.PasswordResetRequestDTO;
 import com.rv.jwt.JwtService;
 import com.rv.model.UserEntity;
 import com.rv.repository.UserRepository;
@@ -13,33 +14,37 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 @Service
 public class UserService {
 
-    
-    private final UserRepository userRepository;
-    
-    private final PasswordEncoder passwordEncoder;
-    
-    private final AuthenticationManager authenticationManager;
-    
-    private final PlatformUserDetailsService platformUserDetailsService;
-    
-    private final JwtService jwtService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, PlatformUserDetailsService platformUserDetailsService, JwtService jwtService) {
+    private final UserRepository userRepository;
+
+    private final PasswordEncoder passwordEncoder;
+
+    private final AuthenticationManager authenticationManager;
+
+    private final PlatformUserDetailsService platformUserDetailsService;
+
+    private final JwtService jwtService;
+    private final OTPService otpService;
+
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, PlatformUserDetailsService platformUserDetailsService, JwtService jwtService, OTPService otpService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.platformUserDetailsService = platformUserDetailsService;
         this.jwtService = jwtService;
+        this.otpService = otpService;
     }
 
     public ResponseEntity<?> registerUser(UserEntity user) {
@@ -50,7 +55,7 @@ public class UserService {
             return new ResponseEntity<>("Email already exists", HttpStatus.BAD_REQUEST);
         }
         try {
-        String encodedPassword = passwordEncoder.encode(user.getPassword());
+            String encodedPassword = passwordEncoder.encode(user.getPassword());
             UserEntity userEntity = new UserEntity();
             userEntity.setUsername(user.getUsername());
             userEntity.setPassword(encodedPassword);
@@ -75,7 +80,7 @@ public class UserService {
 
             if (authentication != null && authentication.isAuthenticated()) {
                 String token = jwtService.generateToken(platformUserDetailsService.loadUserByUsername(loginDTO.username()));
-                String role= platformUserDetailsService.loadUserByUsername(loginDTO.username()).getAuthorities().iterator().next().getAuthority();
+                String role = platformUserDetailsService.loadUserByUsername(loginDTO.username()).getAuthorities().iterator().next().getAuthority();
                 Map<String, Object> response = new HashMap<>();
                 response.put("token", token);
                 response.put("role", role);
@@ -90,6 +95,42 @@ public class UserService {
             e.printStackTrace();
             return new ResponseEntity<>("Internal server error!", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public ResponseEntity<?> initiatePasswordReset(String email) {
+        UserEntity user = userRepository.findByEmail(email);
+        if (user == null) {
+            return new ResponseEntity<>("This email is not registered with us!", HttpStatus.NOT_FOUND);
+        }
+
+        String otp = generateOTP();
+        otpService.storeOTP(user, otp);
+
+        System.out.println(otp);
+        return new ResponseEntity<>("OTP sent to registered email", HttpStatus.OK);
+    }
+
+    public ResponseEntity<?> resetPassword(PasswordResetRequestDTO passwordResetRequestDTO) {
+        UserEntity user = userRepository.findByEmail(passwordResetRequestDTO.getEmail());
+        if (user == null) {
+            return new ResponseEntity<>("This email is not registered with us!", HttpStatus.NOT_FOUND);
+        }
+
+        if (!otpService.validateOTP(user, passwordResetRequestDTO.getOtp())) {
+            return new ResponseEntity<>("Invalid or expired OTP", HttpStatus.BAD_REQUEST);
+        }
+
+        String encodedPassword = passwordEncoder.encode(passwordResetRequestDTO.getNewPassword());
+        user.setPassword(encodedPassword);
+        userRepository.save(user);
+
+        otpService.clearOTP(user);
+
+        return new ResponseEntity<>("Password updated successfully!", HttpStatus.OK);
+    }
+
+    private String generateOTP() {
+        return String.format("%06d", new Random().nextInt(999999));
     }
 
 }
