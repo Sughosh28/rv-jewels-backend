@@ -5,11 +5,12 @@ import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @MappedSuperclass
-public class UserEntityAbstract {
+public class UserEntityAbstract  {
 
     @Size(min = 10, max = 10, message = "Phone number must be exactly 10 digits")
     private String phoneNumber;

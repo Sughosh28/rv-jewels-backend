@@ -1,8 +1,11 @@
 package com.rv.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rv.model.abstracts.BaseReview;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.io.Serializable;
 import java.util.List;
 
 @Entity
@@ -15,6 +18,7 @@ public class Review extends BaseReview {
 
     @ManyToOne
     @JoinColumn(name = "product_id")
+    @JsonIgnore
     private Products product;
 
     @ManyToOne

@@ -3,13 +3,15 @@ package com.rv.model.abstracts;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @MappedSuperclass
 @Getter
 @Setter
-public abstract class BaseReview {
+public abstract class BaseReview  {
     @Id
     @GeneratedValue
     private Long id;
