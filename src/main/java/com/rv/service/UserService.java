@@ -6,6 +6,7 @@ import com.rv.jwt.JwtService;
 import com.rv.model.UserEntity;
 import com.rv.repository.UserRepository;
 import com.rv.userdetails.PlatformUserDetailsService;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -34,17 +35,19 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
 
     private final PlatformUserDetailsService platformUserDetailsService;
+    private final MailService mailService;
 
     private final JwtService jwtService;
     private final OTPService otpService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, PlatformUserDetailsService platformUserDetailsService, JwtService jwtService, OTPService otpService) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, PlatformUserDetailsService platformUserDetailsService, JwtService jwtService, OTPService otpService,MailService mailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.platformUserDetailsService = platformUserDetailsService;
         this.jwtService = jwtService;
         this.otpService = otpService;
+        this.mailService = mailService;
     }
 
     public ResponseEntity<?> registerUser(UserEntity user) {
@@ -66,6 +69,7 @@ public class UserService {
             userEntity.setRegistrationDate(LocalDate.now());
             userEntity.setPinCode(user.getPinCode());
             userRepository.save(userEntity);
+            mailService.sendRegistrationEmail(user.getEmail(),user.getUsername(), "Thank you for registering with us. Your registration was successful.");
             return new ResponseEntity<>("Registration Successful!", HttpStatusCode.valueOf(201));
 
         } catch (Exception e) {
@@ -97,7 +101,7 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<?> initiatePasswordReset(String email) {
+    public ResponseEntity<?> initiatePasswordReset(String email) throws MessagingException {
         UserEntity user = userRepository.findByEmail(email);
         if (user == null) {
             return new ResponseEntity<>("This email is not registered with us!", HttpStatus.NOT_FOUND);
@@ -106,25 +110,30 @@ public class UserService {
         String otp = generateOTP();
         otpService.storeOTP(user, otp);
 
-        System.out.println(otp);
+        mailService.sendMailForOtp(user.getEmail(), otp);
         return new ResponseEntity<>("OTP sent to registered email", HttpStatus.OK);
     }
 
-    public ResponseEntity<?> resetPassword(PasswordResetRequestDTO passwordResetRequestDTO) {
+    public ResponseEntity<?> resetPassword(PasswordResetRequestDTO passwordResetRequestDTO) throws MessagingException {
         UserEntity user = userRepository.findByEmail(passwordResetRequestDTO.getEmail());
         if (user == null) {
             return new ResponseEntity<>("This email is not registered with us!", HttpStatus.NOT_FOUND);
         }
+        if (user.getOtp() == null || user.getOtp().isEmpty() || !otpService.validateOTP(user, passwordResetRequestDTO.getOtp())) {
+            return new ResponseEntity<>("OTP is expired, please request a new one", HttpStatus.BAD_REQUEST);
+        }
 
         if (!otpService.validateOTP(user, passwordResetRequestDTO.getOtp())) {
-            return new ResponseEntity<>("Invalid or expired OTP", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Invalid OTP", HttpStatus.BAD_REQUEST);
         }
+
 
         String encodedPassword = passwordEncoder.encode(passwordResetRequestDTO.getNewPassword());
         user.setPassword(encodedPassword);
         userRepository.save(user);
 
         otpService.clearOTP(user);
+        mailService.sendMailForPasswordReset(user.getEmail(),user.getUsername(), "Your password has been reset successfully.");
 
         return new ResponseEntity<>("Password updated successfully!", HttpStatus.OK);
     }

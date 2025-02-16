@@ -2,6 +2,7 @@ package com.rv.model.abstracts;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
@@ -14,7 +15,7 @@ public class UserEntityAbstract {
     private String phoneNumber;
     private String address;
     private LocalDate registrationDate;
-    @Size(min = 6, max = 6, message = "Pin code must be exactly 6 characters")
+    @Pattern(regexp = "^[0-9]{6}$", message = "Zip code must be 6 digits")
     @Column(nullable = false)
     private String pinCode;
     private String otp;

@@ -8,7 +8,6 @@ import com.rv.model.UserEntity;
 import com.rv.repository.ProductRepository;
 import com.rv.repository.ReviewRepository;
 import com.rv.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
