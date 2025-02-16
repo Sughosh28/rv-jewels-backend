@@ -4,6 +4,7 @@ package com.rv.model.abstracts;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 @MappedSuperclass

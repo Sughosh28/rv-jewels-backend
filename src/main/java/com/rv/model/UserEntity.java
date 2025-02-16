@@ -6,9 +6,11 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 
+import java.io.Serializable;
+
 @Entity
 @Table(name = "users")
-public class UserEntity extends UserEntityAbstract {
+public class UserEntity extends UserEntityAbstract  {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
