@@ -1,6 +1,7 @@
 package com.rv.controller;
 
 import com.rv.dto.ReviewRequest;
+import com.rv.service.CacheInspectionService;
 import com.rv.service.ReviewService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,9 +11,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v2/user")
 public class ReviewController {
     private final ReviewService reviewService;
+    private final CacheInspectionService cacheInspectionService;
 
-    public ReviewController(ReviewService reviewService) {
+    public ReviewController(ReviewService reviewService, CacheInspectionService cacheInspectionService) {
         this.reviewService = reviewService;
+        this.cacheInspectionService = cacheInspectionService;
     }
 
     @PostMapping("/review/add-review/{productId}")
@@ -39,6 +42,11 @@ public class ReviewController {
         }
         String authToken= token.substring(7);
         return reviewService.deleteReview(authToken,productId, reviewId);
+    }
+
+    @GetMapping("/review/get-cache")
+    public void getCache() {
+         cacheInspectionService.printCacheContents("reviews");
     }
 
 }

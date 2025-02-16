@@ -4,6 +4,7 @@ import com.rv.dto.LoginDTO;
 import com.rv.dto.PasswordResetRequestDTO;
 import com.rv.model.UserEntity;
 import com.rv.service.UserService;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,12 +32,12 @@ public class UserController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@RequestParam String email) {
+    public ResponseEntity<?> forgotPassword(@RequestParam String email) throws MessagingException {
         return ResponseEntity.ok(userService.initiatePasswordReset(email));
     }
 
     @PutMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@Valid @RequestBody PasswordResetRequestDTO passwordResetRequestDTO) {
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody PasswordResetRequestDTO passwordResetRequestDTO) throws MessagingException {
         return ResponseEntity.ok(userService.resetPassword(passwordResetRequestDTO));
     }
 }

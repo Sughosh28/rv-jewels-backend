@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to RV Jewels</title>
+    <style>
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .header {
+            background-color: #8B4513;
+            color: #FFD700;
+            padding: 25px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 0 0 5px 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            line-height: 1.6;
+        }
+        .welcome-message {
+            font-size: 20px;
+            color: #8B4513;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .benefits-list {
+            background-color: #FFF8DC;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .benefits-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .benefits-list li {
+            margin: 10px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        .benefits-list li:before {
+            content: "✓";
+            color: #8B4513;
+            position: absolute;
+            left: 0;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #8B4513;
+            color: #FFD700;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 12px;
+            padding: 20px;
+        }
+        .social-links {
+            margin: 20px 0;
+        }
+        .social-links a {
+            margin: 0 10px;
+            color: #8B4513;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <div class="header">
+        <h1>Welcome to RV Jewels</h1>
+    </div>
+    <div class="content">
+        <div class="welcome-message">
+            Dear <span th:text="${username}">User</span>,
+        </div>
+        <p>Thank you for joining RV Jewels! We're excited to have you as part of our exclusive jewelry community.</p>
+
+
+        <p>Start exploring our exquisite collection today!</p>
+
+        <center>
+            <a href="https://rvjewels.com/shop" class="cta-button">Start Shopping</a>
+        </center>
+    </div>
+
+    <div class="footer">
+        <div class="social-links">
+            <a href="#">Facebook</a> |
+            <a href="#">Instagram</a> |
+            <a href="#">Pinterest</a>
+        </div>
+        <p>This is an automated message from RV Jewels. Please do not reply to this email.</p>
+        <p>&copy; 2024 RV Jewels. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>
