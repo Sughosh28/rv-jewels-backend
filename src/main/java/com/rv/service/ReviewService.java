@@ -1,5 +1,6 @@
 package com.rv.service;
 
+import com.rv.dto.ReviewDTO;
 import com.rv.dto.ReviewRequest;
 import com.rv.jwt.JwtService;
 import com.rv.model.Products;
@@ -8,8 +9,10 @@ import com.rv.model.UserEntity;
 import com.rv.repository.ProductRepository;
 import com.rv.repository.ReviewRepository;
 import com.rv.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -32,6 +35,9 @@ public class ReviewService {
         this.userRepository = userRepository;
         this.productRepository = productRepository;
     }
+
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     @CacheEvict(value = {"reviews", "averageRating", "totalReviews"}, key = "#productId")
     public ResponseEntity<?> addReview(String token, Long productId, ReviewRequest reviewRequest) {
@@ -63,26 +69,32 @@ public class ReviewService {
     }
 
     @Cacheable(value = "reviews", key = "#productId")
-    public ResponseEntity<?> getReviews(Long productId) {
-        System.out.println("Review table DB hit");
+    public Map<String, Object> getReviews(Long productId) {
+
         try {
             Products product = productRepository.findById(productId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product does not exist!"));
 
             List<Review> allReviews = reviewRepository.findReviewsByProductIdOrderByReviewDateDesc(productId);
             if (allReviews.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No reviews found for this product");
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No reviews found for this product");
             }
 
-            List<Map<String, Object>> simplifiedReviews = allReviews.stream()
-                    .map(review -> Map.of(
-                            "id", review.getId(),
-                            "rating", review.getRating(),
-                            "comment", review.getComment(),
-                            "reviewDate", review.getReviewDate(),
-                            "reviewImages", review.getReviewImages(),
-                            "userName", review.getUser().getUsername()
-                    ))
+            List<ReviewDTO> simplifiedReviews = allReviews.stream()
+                    .map(review -> {
+                        ReviewDTO dto = new ReviewDTO();
+                        dto.setId(review.getId());
+                        dto.setRating(review.getRating());
+                        dto.setComment(review.getComment());
+                        dto.setReviewDate(review.getReviewDate());
+                        if (review.getReviewImages() != null) {
+                            dto.setReviewImageUrls(review.getReviewImages());
+                        } else {
+                            dto.setReviewImageUrls(Collections.emptyList()); // Handle nulls
+                        }
+                        dto.setUserName(review.getUser().getUsername());
+                        return dto;
+                    })
                     .collect(Collectors.toList());
 
             Map<String, Object> response = Map.of(
@@ -90,14 +102,15 @@ public class ReviewService {
                     "reviews", simplifiedReviews
             );
 
-            return ResponseEntity.ok(response);
+            return response;
 
         } catch (ResponseStatusException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
+            throw e;
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("An error occurred: " + e.getMessage());
+            throw new RuntimeException("An error occurred: " + e.getMessage(), e);
         }
     }
+
 
     @CacheEvict(value = {"reviews", "averageRating", "totalReviews"}, key = "#productId")
     public ResponseEntity<?> deleteReview(String token, Long productId, Long reviewId) {
@@ -140,8 +153,8 @@ public class ReviewService {
         return totalRating / reviews.size();
     }
 
-    @Cacheable(value = "totalReviews", key = "#productId")
-    private Long countTotalReviews(Long productId) {
-        return reviewRepository.countReviewsByProductId(productId);
-    }
+//    @Cacheable(value = "totalReviews", key = "#productId")
+//    private Long countTotalReviews(Long productId) {
+//        return reviewRepository.countReviewsByProductId(productId);
+//    }
 }

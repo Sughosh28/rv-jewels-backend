@@ -12,7 +12,7 @@ import java.util.UUID;
 @MappedSuperclass
 @Getter
 @Setter
-public abstract class BaseOrder  {
+public abstract class BaseOrder implements Serializable {
     @Id
     @GeneratedValue
     private UUID id;

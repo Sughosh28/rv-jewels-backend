@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 
 @MappedSuperclass
 
-public abstract class BaseProduct {
+public abstract class BaseProduct implements Serializable{
     @Id
     @GeneratedValue
     private Long id;

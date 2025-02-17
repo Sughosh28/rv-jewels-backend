@@ -1,14 +1,16 @@
 package com.rv.service;
 
+import com.rv.dto.ProductListResponseDTO;
+import com.rv.dto.ProductResponseDTO;
+import com.rv.dto.ProductSearchResponse;
 import com.rv.model.Products;
 import com.rv.repository.ProductRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -53,18 +55,27 @@ public class ProductService {
     }
 
     @Cacheable(value = "allProducts")
-    public ResponseEntity<?> getAllProducts() {
+    public Map<String, Object> getAllProducts() {
         System.out.println("Hit success for product service!");
         try {
             List<Products> products = productRepository.findAll();
-            for (Products product : products) {
+
+            products.forEach(product -> {
                 Double averageRating = reviewService.calculateProductAverageRating(product.getId());
                 product.setAverageRating(averageRating);
-            }
+            });
+
             productRepository.saveAll(products);
-            return new ResponseEntity<>(products, HttpStatus.OK);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("products", products);
+            response.put("status", "success");
+
+            return response;
+        } catch (ResponseStatusException e) {
+            throw e;
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            throw new RuntimeException("An error occurred: " + e.getMessage(), e);
         }
     }
 
@@ -106,47 +117,60 @@ public class ProductService {
     }
 
     @Cacheable(value = "searchedProducts", key = "#keyword")
-    public ResponseEntity<?> searchProducts(String keyword) {
-        try {
-            List<Products> product = productRepository.findByNameContainingIgnoreCase(keyword);
-            if (product.isEmpty()) {
-                return new ResponseEntity<>("The product does not exist", HttpStatus.BAD_REQUEST);
-            }
-            return new ResponseEntity<>(product, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+    public ProductSearchResponse searchProducts(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            throw new IllegalArgumentException("Search keyword must not be empty.");
         }
+
+        List<Products> products = productRepository.findByNameContainingIgnoreCase(keyword);
+
+        return new ProductSearchResponse(
+                products.size(),
+                products,
+                keyword,
+                products.isEmpty() ? "No products found" : null
+        );
     }
 
     @Cacheable(value = "products", key = "#productId")
-    public ResponseEntity<?> getProductById(Long productId) {
-        try {
-            Optional<Products> productOpt = productRepository.findById(productId);
-            if (productOpt.isEmpty()) {
-                return new ResponseEntity<>("Product not found!", HttpStatus.NOT_FOUND);
-            }
-            Products productEntity=productOpt.get();
-            Double averageRating = reviewService.calculateProductAverageRating(productId);
-            productEntity.setAverageRating(averageRating);
-            productRepository.save(productEntity);
-            return new ResponseEntity<>(productEntity, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+    public ProductResponseDTO getProductById(Long productId) {
+        return productRepository.findById(productId)
+                .map(product -> {
+                    Double averageRating = reviewService.calculateProductAverageRating(productId);
+                    return new ProductResponseDTO(
+                            product.getId(),
+                            product.getName(),
+                            product.getDescription(),
+                            product.getPrice(),
+                            averageRating,
+                            "Product retrieved successfully");
+                })
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
     }
 
+
     @Cacheable(value = "productsByCategory", key = "#category")
-    public ResponseEntity<?> getProductsByCategory(Products.ProductCategory category) {
-        try {
-            List<Products> products = productRepository.findByCategory(category);
-            if (products.isEmpty()) {
-                return new ResponseEntity<>("No products found in the this category!", HttpStatus.BAD_REQUEST);
-            }
-            return new ResponseEntity<>(products, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+    public ProductListResponseDTO getProductsByCategory(Products.ProductCategory category) {
+        List<Products> products = productRepository.findByCategory(category);
+
+        if (products.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No products found in this category!");
         }
+
+        List<ProductResponseDTO> productDTOs = products.stream()
+                .map(product -> new ProductResponseDTO(
+                        product.getId(),
+                        product.getName(),
+                        product.getDescription(),
+                        product.getPrice(),
+                        product.getAverageRating(),
+                        "Product retrieved successfully"
+                ))
+                .toList();
+
+        return new ProductListResponseDTO(category.name(), productDTOs.size(), productDTOs);
     }
+
 
 
     @Cacheable(value = "productsByPrice", key = "#minPrice + '-' + #maxPrice")

@@ -10,7 +10,7 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "users")
-public class UserEntity extends UserEntityAbstract  {
+public class UserEntity extends UserEntityAbstract implements Serializable  {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

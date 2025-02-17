@@ -5,6 +5,7 @@ import com.rv.model.abstracts.BaseProduct;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Entity
@@ -13,7 +14,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Products extends BaseProduct {
+public class Products extends BaseProduct implements Serializable {
 
     @Enumerated(EnumType.STRING)
     private ProductCategory category;
@@ -22,7 +23,7 @@ public class Products extends BaseProduct {
     private String color;
 
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     private List<String> images;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)

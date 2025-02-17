@@ -11,7 +11,7 @@ import java.util.UUID;
 @MappedSuperclass
 @Getter
 @Setter
-public abstract class BaseReview  {
+public abstract class BaseReview implements Serializable  {
     @Id
     @GeneratedValue
     private Long id;
