@@ -52,7 +52,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(registry -> {
-            registry.requestMatchers("/", "/api/v1/user/**").permitAll();
+            registry.requestMatchers("/", "/api/v1/user/**","/v3/api-docs/**","/swagger-ui/**").permitAll();
             registry.requestMatchers("/api/v2/admin/**").hasRole("ADMIN");
             registry.requestMatchers("/api/v2/user/**").hasRole("USER");
             registry.anyRequest().authenticated();
