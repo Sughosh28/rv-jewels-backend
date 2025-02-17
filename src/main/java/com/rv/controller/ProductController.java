@@ -7,7 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -41,10 +43,16 @@ public class ProductController {
     @GetMapping("/all-products")
     public ResponseEntity<?> getAllProducts(@RequestHeader("Authorization") String token) {
         if (token == null || token.isEmpty()) {
-            return new ResponseEntity<>("Authentication is missing", HttpStatus.UNAUTHORIZED);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Authentication is missing");
+            errorResponse.put("status", "error");
+            return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
         }
-        return new ResponseEntity<>(productService.getAllProducts(), HttpStatus.OK);
+
+        Map<String, Object> response = productService.getAllProducts();
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
 
     @GetMapping("/products/search")
     public ResponseEntity<?> searchProducts(

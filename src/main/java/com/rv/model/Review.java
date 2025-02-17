@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rv.model.abstracts.BaseReview;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import java.io.Serializable;
 import java.util.List;
@@ -14,7 +16,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Review extends BaseReview {
+public class Review extends BaseReview implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "product_id")
@@ -27,8 +29,9 @@ public class Review extends BaseReview {
 
     private Boolean verifiedPurchase;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     private List<String> reviewImages;
+
 
     public Products getProduct() {
         return product;

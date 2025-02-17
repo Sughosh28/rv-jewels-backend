@@ -6,6 +6,9 @@ import com.rv.service.ReviewService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v2/user")
@@ -32,7 +35,15 @@ public class ReviewController {
         if (token == null || token.isEmpty()) {
             return new ResponseEntity<>("Authentication is missing", HttpStatus.UNAUTHORIZED);
         }
-        return reviewService.getReviews(productId);
+
+        try {
+            Map<String, Object> reviews = reviewService.getReviews(productId);
+            return ResponseEntity.ok(reviews); // Construct ResponseEntity here
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("An error occurred: " + e.getMessage());
+        }
     }
 
     @DeleteMapping("/review/delete-review/{productId}/{reviewId}")
