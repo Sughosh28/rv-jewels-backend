@@ -1,6 +1,7 @@
 package com.rv.service;
 
 import com.rv.dto.ProductListResponseDTO;
+import com.rv.dto.ProductPriceRangeListDTO;
 import com.rv.dto.ProductResponseDTO;
 import com.rv.dto.ProductSearchResponse;
 import com.rv.model.Products;
@@ -56,7 +57,6 @@ public class ProductService {
 
     @Cacheable(value = "allProducts")
     public Map<String, Object> getAllProducts() {
-        System.out.println("Hit success for product service!");
         try {
             List<Products> products = productRepository.findAll();
 
@@ -174,13 +174,31 @@ public class ProductService {
 
 
     @Cacheable(value = "productsByPrice", key = "#minPrice + '-' + #maxPrice")
-    public ResponseEntity<?> getProductsByPriceRange(double minPrice, double maxPrice) {
-        try {
-            return new ResponseEntity<>(productRepository.findByPriceBetween(minPrice, maxPrice), HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+    public ProductPriceRangeListDTO getProductsByPriceRange(double minPrice, double maxPrice) {
+        if (minPrice < 0 || maxPrice <= minPrice) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid price range. Ensure minPrice >= 0 and maxPrice > minPrice.");
         }
+
+        List<Products> products = productRepository.findByPriceBetween(minPrice, maxPrice);
+
+        if (products.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No products found in the given price range.");
+        }
+
+        List<ProductResponseDTO> productDTOs = products.stream()
+                .map(product -> new ProductResponseDTO(
+                        product.getId(),
+                        product.getName(),
+                        product.getDescription(),
+                        product.getPrice(),
+                        product.getAverageRating(),
+                        "Product retrieved successfully"
+                ))
+                .toList();
+
+        return new ProductPriceRangeListDTO(minPrice, maxPrice, productDTOs.size(), productDTOs);
     }
+
 
     public ResponseEntity<?> addBulkProducts(List<Products> products) {
 
