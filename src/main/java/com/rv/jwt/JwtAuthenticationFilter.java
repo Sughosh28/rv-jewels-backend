@@ -9,12 +9,14 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.security.SignatureException;
@@ -59,17 +61,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (ExpiredJwtException | MalformedJwtException | UnsupportedJwtException |
                  IllegalArgumentException ex) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("JWT Authentication failed: " + ex.getMessage());
-            log.log(Level.SEVERE, "JWT Authentication failed", ex);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "JWT Authentication failed: " + ex.getMessage());
+
         } catch (AuthenticationException ex) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Authentication failed: " + ex.getMessage());
-            log.log(Level.SEVERE, "Authentication failed", ex);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "JWT Authentication failed: " + ex.getMessage());
+
         } catch (Exception ex) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("An error occurred during authentication");
-            log.log(Level.SEVERE, "Authentication error", ex);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "JWT Authentication failed: " + ex.getMessage());
         }
     }
 }

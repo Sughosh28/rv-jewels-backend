@@ -1,5 +1,6 @@
 package com.rv.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rv.model.abstracts.BaseOrder;
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,6 +17,7 @@ public class Orders extends BaseOrder {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private UserEntity user;
 
     @Enumerated(EnumType.STRING)
@@ -38,6 +40,7 @@ public class Orders extends BaseOrder {
         FAILED,
         RETURNED
     }
+
     public enum OrderStatus {
         PLACED,
         CONFIRMED,
@@ -48,5 +51,37 @@ public class Orders extends BaseOrder {
         CANCELLED,
         REFUNDED,
         COMPLETED
+    }
+
+    public UserEntity getUser() {
+        return user;
+    }
+
+    public void setUser(UserEntity user) {
+        this.user = user;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(OrderStatus status) {
+        this.status = status;
+    }
+
+    public DeliveryStatus getDeliveryStatus() {
+        return deliveryStatus;
+    }
+
+    public void setDeliveryStatus(DeliveryStatus deliveryStatus) {
+        this.deliveryStatus = deliveryStatus;
+    }
+
+    public List<OrderItems> getOrderItems() {
+        return orderItems;
+    }
+
+    public void setOrderItems(List<OrderItems> orderItems) {
+        this.orderItems = orderItems;
     }
 }
