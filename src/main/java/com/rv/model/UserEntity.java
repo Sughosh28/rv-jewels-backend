@@ -10,7 +10,7 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "users")
-public class UserEntity extends UserEntityAbstract implements Serializable  {
+public class UserEntity extends UserEntityAbstract implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -18,10 +18,10 @@ public class UserEntity extends UserEntityAbstract implements Serializable  {
     @Column(unique = true)
     private String username;
 
-    @Size(min = 8,message="Password must be 8 characters long.")
+    @Size(min = 8, message = "Password must be 8 characters long.")
     @Column(nullable = false)
     private String password;
-    @Email(message="Invalid email address")
+    @Email(message = "Invalid email address")
     @Valid
     private String email;
 
@@ -37,6 +37,7 @@ public class UserEntity extends UserEntityAbstract implements Serializable  {
         this.email = email;
         this.role = role;
     }
+
 
     public Long getId() {
         return id;
@@ -69,7 +70,6 @@ public class UserEntity extends UserEntityAbstract implements Serializable  {
     public void setEmail(String email) {
         this.email = email;
     }
-
 
 
     public String getRole() {
