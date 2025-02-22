@@ -6,6 +6,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -23,6 +24,7 @@ public class MailService {
         this.userRepository = userRepository;
     }
 
+    @Async
     public void sendMailForOtp(String email, String otp) throws MessagingException {
         UserEntity user = userRepository.findByEmail(email);
         MimeMessage message = javaMailSender.createMimeMessage();
@@ -39,6 +41,7 @@ public class MailService {
         javaMailSender.send(message);
     }
 
+    @Async
     public void sendRegistrationEmail(String email,String username, String s1) throws MessagingException {
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -53,6 +56,7 @@ public class MailService {
         javaMailSender.send(message);
     }
 
+    @Async
     public void sendMailForPasswordReset(String email,String username, String s) throws MessagingException {
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);

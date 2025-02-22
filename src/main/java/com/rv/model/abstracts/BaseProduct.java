@@ -23,6 +23,15 @@ public abstract class BaseProduct implements Serializable{
     private Boolean isFeatured;
     private String tags;
     private Double averageRating;
+    private String[] productImageUrl;
+
+    public String [] getProductImageUrl() {
+        return productImageUrl;
+    }
+
+    public void setProductImageUrl(String []productImageUrl) {
+        this.productImageUrl = productImageUrl;
+    }
 
     public Boolean getActive() {
         return isActive;

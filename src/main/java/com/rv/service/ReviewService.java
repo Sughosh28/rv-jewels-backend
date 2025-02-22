@@ -153,8 +153,11 @@ public class ReviewService {
         return totalRating / reviews.size();
     }
 
-//    @Cacheable(value = "totalReviews", key = "#productId")
-//    private Long countTotalReviews(Long productId) {
-//        return reviewRepository.countReviewsByProductId(productId);
-//    }
+
+    @Cacheable(value = "reviewCounts", key = "#productId")
+    public Long getReviewCount(Long productId) {
+        return reviewRepository.countByProductId(productId);
+    }
+
+
 }

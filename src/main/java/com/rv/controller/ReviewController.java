@@ -60,4 +60,9 @@ public class ReviewController {
          cacheInspectionService.printCacheContents("reviews");
     }
 
+    @GetMapping("/review/get-count")
+    public Long getReviewCount(@RequestParam Long productId) {
+        return reviewService.getReviewCount(productId);
+    }
+
 }

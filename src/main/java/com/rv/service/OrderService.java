@@ -14,8 +14,9 @@ import com.rv.repository.ProductRepository;
 import com.rv.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -41,6 +42,7 @@ public class OrderService {
     @Autowired
     private UserRepository userRepository;
 
+    @CacheEvict(value = {"orderDetails", "userOrders"}, key = "#authToken")
     @Transactional
     public Map<String, Object> createOrder(String token, Long productId, int quantity) {
 
@@ -100,6 +102,7 @@ public class OrderService {
     }
 
     @Transactional
+    @CacheEvict(value = {"orderDetails", "userOrders"}, key = "#authToken")
     public Map<String, Object> cancelOrder(String authToken, UUID orderId) {
         Long userId = jwtService.extractUserId(authToken);
 
@@ -119,6 +122,7 @@ public class OrderService {
     }
 
     @Transactional
+    @CacheEvict(value = {"orderDetails", "userOrders"}, key = "#authToken")
     public Map<String, Object> updateOrderStatus(String authToken, UUID orderId, Orders.OrderStatus status) {
         Long userId = jwtService.extractUserId(authToken);
 
@@ -136,6 +140,7 @@ public class OrderService {
     }
 
     @Transactional
+    @Cacheable(value = "userOrders", key = "#authToken")
     public Map<String, Object> getMyOrders(String authToken) {
         Long userId = jwtService.extractUserId(authToken);
 
@@ -178,6 +183,7 @@ public class OrderService {
     }
 
     @Transactional
+    @CacheEvict(value = {"orderDetails", "userOrders"}, key = "#authToken")
     public Map<String, Object> updateDeliveryStatus(String authToken, UUID orderId, Orders.DeliveryStatus status) {
         Long userId = jwtService.extractUserId(authToken);
 
@@ -194,6 +200,7 @@ public class OrderService {
         return Map.of("message", "Order delivery status updated successfully", "orderId", orderId, "newStatus", status);
     }
 
+    @Cacheable(value = "orderDetails", key = "#orderId")
     public Map<String, Object> getOrderDetails(String authToken, UUID orderId) {
         Long userId = jwtService.extractUserId(authToken);
 
@@ -240,5 +247,7 @@ public class OrderService {
                 order.getDeliveryStatus()
         );
     }
+
+
 
 }
