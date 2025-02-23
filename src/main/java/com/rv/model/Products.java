@@ -24,7 +24,10 @@ public class Products extends BaseProduct implements Serializable {
 
 
     @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "products_images", joinColumns = @JoinColumn(name = "products_id"))
+    @Column(name = "images", length = 1000)
     private List<String> images;
+
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     @JsonIgnore

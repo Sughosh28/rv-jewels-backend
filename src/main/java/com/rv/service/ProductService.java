@@ -1,5 +1,6 @@
 package com.rv.service;
 
+import com.rv.aws.AwsS3ImplService;
 import com.rv.dto.ProductListResponseDTO;
 import com.rv.dto.ProductPriceRangeListDTO;
 import com.rv.dto.ProductResponseDTO;
@@ -11,6 +12,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
@@ -22,38 +24,34 @@ import java.util.stream.Collectors;
 public class ProductService {
     private final ProductRepository productRepository;
     private final ReviewService reviewService;
+    private final AwsS3ImplService awsS3ImplService;
 
-    public ProductService(ProductRepository productRepository, ReviewService reviewService) {
+    public ProductService(ProductRepository productRepository, ReviewService reviewService,AwsS3ImplService awsS3ImplService) {
         this.productRepository = productRepository;
         this.reviewService = reviewService;
+        this.awsS3ImplService = awsS3ImplService;
     }
 
-    public ResponseEntity<?> addNewProduct(Products product) {
+    public ResponseEntity<?> addNewProduct(Products product, List<MultipartFile> images) {
         try {
             if (product.getName() == null || product.getPrice() == null) {
                 return new ResponseEntity<>("Product name and price are required!", HttpStatus.BAD_REQUEST);
             }
 
-            Products newProduct = new Products();
-            newProduct.setName(product.getName());
-            newProduct.setDescription(product.getDescription());
-            newProduct.setPrice(product.getPrice());
-            newProduct.setDiscountedPrice(product.getDiscountedPrice());
-            newProduct.setStockQuantity(product.getStockQuantity());
-            newProduct.setCategory(product.getCategory());
-            newProduct.setActive(product.getActive());
-            newProduct.setColor(product.getColor());
-            newProduct.setFeatured(product.getFeatured());
-            newProduct.setAverageRating(product.getAverageRating());
-            newProduct.setClarity(product.getClarity());
-            newProduct.setTags(product.getTags());
-            newProduct.setSpecifications(product.getSpecifications());
-            newProduct.setImages(product.getImages());
-            return new ResponseEntity<>(productRepository.save(newProduct), HttpStatus.OK);
+            List<String> imageUrls = (images != null && !images.isEmpty())
+                    ? awsS3ImplService.uploadImages(images, "products")
+                    : new ArrayList<>();
+
+            product.setImages(imageUrls);
+            Products savedProduct = productRepository.save(product);
+
+            return new ResponseEntity<>(savedProduct, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
-    }
+
+
+}
 
     @Cacheable(value = "allProducts")
     public Map<String, Object> getAllProducts() {
@@ -296,8 +294,6 @@ public class ProductService {
                 .average()
                 .orElse(0.0);
     }
-
-
 
 
 }

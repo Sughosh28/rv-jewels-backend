@@ -1,15 +1,25 @@
 package com.rv.dto;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
-public class UserProfileResponseDTO {
+public class UserProfileResponseDTO implements Serializable {
     private Long id;
     private String username;
     private String email;
     private String phoneNumber;
     private String address;
     private String pinCode;
+    private String profileUrl;
     private LocalDate registrationDate;
+
+    public String getProfileUrl() {
+        return profileUrl;
+    }
+
+    public void setProfileUrl(String profileUrl) {
+        this.profileUrl = profileUrl;
+    }
 
     public Long getId() {
         return id;

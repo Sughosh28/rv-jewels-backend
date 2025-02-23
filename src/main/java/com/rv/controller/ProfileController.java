@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/v2/user")
@@ -75,6 +78,15 @@ public ProfileController(ProfileService profileService, ProductService productSe
             return new ResponseEntity<>("Authentication is missing", HttpStatus.UNAUTHORIZED);
         }
         return new ResponseEntity<>(productService.getAllProducts(), HttpStatus.OK);
+    }
+
+    @PostMapping("/profile-picture")
+    public ResponseEntity<?> updateProfilePicture(@RequestHeader("Authorization") String token, @RequestPart("image") MultipartFile image) throws IOException {
+        if (token == null || token.isEmpty()) {
+            return new ResponseEntity<>("Authentication is missing", HttpStatus.BAD_REQUEST);
+        }
+        String authToken = token.substring(7);
+        return new ResponseEntity<>(profileService.uploadProfilePicture(authToken, image), HttpStatus.OK);
     }
 
 }

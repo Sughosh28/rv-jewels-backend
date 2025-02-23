@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.List;
 
 
-public interface AwsService {
+public interface AwsMethodsInterface {
 
     String uploadImage(MultipartFile image, String folder) throws IOException;
 

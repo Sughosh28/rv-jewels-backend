@@ -1,7 +1,6 @@
 package com.rv.model.abstracts;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
@@ -9,6 +8,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @MappedSuperclass
 public class UserEntityAbstract implements Serializable {
@@ -22,6 +22,16 @@ public class UserEntityAbstract implements Serializable {
     private String pinCode;
     private String otp;
     private LocalDateTime otpExpiry;
+    @Column(name = "images", length = 1000)
+    private String profileImageUrl;
+
+    public String getProfileImageUrl() {
+        return profileImageUrl;
+    }
+
+    public void setProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
 
     public String getOtp() {
         return otp;

@@ -1,5 +1,6 @@
 package com.rv.service;
 
+import com.rv.aws.AwsS3ImplService;
 import com.rv.dto.*;
 import com.rv.jwt.JwtService;
 import com.rv.model.UserEntity;
@@ -10,7 +11,9 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -22,6 +25,9 @@ public class ProfileService {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
     }
+
+    @Autowired
+    private AwsS3ImplService awsS3ImplService;
 
     @Cacheable(value = "userProfiles", key = "#token")
     public UserProfileResponseDTO getUserProfile(String token) {
@@ -43,6 +49,7 @@ public class ProfileService {
         dto.setAddress(user.getAddress());
         dto.setPinCode(user.getPinCode());
         dto.setRegistrationDate(user.getRegistrationDate());
+        dto.setProfileUrl(user.getProfileImageUrl());
         return dto;
     }
 
@@ -116,7 +123,28 @@ public class ProfileService {
             return new ResponseEntity<>("Phone number updated successfully!", HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-
         }
     }
+
+    public Map<String, String> uploadProfilePicture(String authToken, MultipartFile image) {
+        try {
+            Long userId = jwtService.extractUserId(authToken);
+
+            Optional<UserEntity> userOptional = userRepository.findById(userId);
+            if (userOptional.isEmpty()) {
+                return (Map.of("message", "User does not exist!"));
+            }
+
+            UserEntity userEntity = userOptional.get();
+            String profilePictureImageUrl = awsS3ImplService.uploadImage(image, "user-profile-pictures");
+
+            userEntity.setProfileImageUrl(profilePictureImageUrl);
+            userRepository.save(userEntity);
+
+            return (Map.of("message", "Profile picture updated successfully!", "imageUrl", profilePictureImageUrl));
+        } catch (Exception e) {
+            return (Map.of("error", e.getMessage()));
+        }
+    }
+
 }
