@@ -2,10 +2,12 @@ package com.rv.controller;
 
 import com.rv.model.Products;
 import com.rv.service.ProductService;
+import jakarta.mail.Multipart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,11 +24,11 @@ public class ProductController {
     }
 
     @PostMapping("/add-new-product")
-    public ResponseEntity<?> addNewProduct(@RequestHeader("Authorization") String token, @RequestBody Products product) {
+    public ResponseEntity<?> addNewProduct(@RequestHeader("Authorization") String token, @RequestPart("product") Products product, @RequestPart("images")List<MultipartFile> images) {
         if (token == null || token.isEmpty()) {
             return new ResponseEntity<>("Authentication is missing", HttpStatus.UNAUTHORIZED);
         }
-        return new ResponseEntity<>(productService.addNewProduct(product), HttpStatus.OK);
+        return new ResponseEntity<>(productService.addNewProduct(product, images), HttpStatus.OK);
     }
 
     @PostMapping("/products/bulk")
