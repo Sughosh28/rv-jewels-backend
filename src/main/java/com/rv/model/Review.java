@@ -30,6 +30,7 @@ public class Review extends BaseReview implements Serializable {
     private Boolean verifiedPurchase;
 
     @ElementCollection(fetch = FetchType.EAGER)
+    @Column(name = "reviews", length = 1000)
     private List<String> reviewImages;
 
 

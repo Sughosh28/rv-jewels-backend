@@ -12,5 +12,4 @@ public interface AwsMethodsInterface {
 
     List<String> allFiles(String folder);
 
-    String preSignedUrl(String filename);
 }

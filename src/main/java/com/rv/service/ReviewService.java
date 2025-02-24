@@ -1,5 +1,6 @@
 package com.rv.service;
 
+import com.rv.aws.AwsS3ImplService;
 import com.rv.dto.ReviewDTO;
 import com.rv.dto.ReviewRequest;
 import com.rv.jwt.JwtService;
@@ -16,6 +17,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
@@ -29,6 +31,9 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
 
+    @Autowired
+    private AwsS3ImplService awsS3ImplService;
+
     public ReviewService(ReviewRepository reviewRepository, JwtService jwtService, UserRepository userRepository, ProductRepository productRepository) {
         this.reviewRepository = reviewRepository;
         this.jwtService = jwtService;
@@ -40,33 +45,52 @@ public class ReviewService {
     private RedisTemplate<String, Object> redisTemplate;
 
     @CacheEvict(value = {"reviews", "averageRating", "totalReviews"}, key = "#productId")
-    public ResponseEntity<?> addReview(String token, Long productId, ReviewRequest reviewRequest) {
+    public Map<String, Object> addReview(String token, Long productId, ReviewRequest reviewRequest, List<MultipartFile> images) {
+        Map<String, Object> response = new HashMap<>();
         try {
             Long userId = jwtService.extractUserId(token);
 
-            Optional<UserEntity> userEntity = userRepository.findById(userId);
-            if (userEntity.isEmpty()) {
-                return new ResponseEntity<>("User does not exist!", HttpStatus.UNAUTHORIZED);
-            }
-            Optional<Products> productEntity = productRepository.findById(productId);
-            if (productEntity.isEmpty()) {
-                return new ResponseEntity<>("Product does not exist!", HttpStatus.NOT_FOUND);
-            }
-            Review reviewEntity = new Review();
-            reviewEntity.setReviewImages(reviewRequest.getReviewImages());
-            reviewEntity.setUser(userEntity.get());
-            reviewEntity.setReviewDate(LocalDateTime.now());
-            reviewEntity.setComment(reviewRequest.getComment());
-            reviewEntity.setRating(reviewRequest.getRating());
-            reviewEntity.setProduct(productEntity.get());
-            reviewEntity.setVerifiedPurchase(true);
-            reviewRepository.save(reviewEntity);
-            return new ResponseEntity<>("Review posted!", HttpStatus.OK);
+            UserEntity user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User does not exist!"));
 
+            Products product = productRepository.findById(productId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product does not exist!"));
+
+            if (reviewRequest.getRating() < 1 || reviewRequest.getRating() > 5) {
+                response.put("status", "error");
+                response.put("message", "Rating must be between 1 and 5.");
+                return response;
+            }
+
+            Review review = new Review();
+            review.setUser(user);
+            review.setReviewDate(LocalDateTime.now());
+            review.setComment(reviewRequest.getComment());
+            review.setRating(reviewRequest.getRating());
+            review.setProduct(product);
+            review.setVerifiedPurchase(true);
+
+            List<String> urlList = awsS3ImplService.uploadImages(images, "reviews");
+            review.setReviewImages(urlList);
+
+            reviewRepository.save(review);
+
+            response.put("status", "success");
+            response.put("message", "Review posted successfully!");
+            return response;
+
+        } catch (ResponseStatusException e) {
+            response.put("status", "error");
+            response.put("message", e.getReason());
+            return response;
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            e.printStackTrace();
+            response.put("status", "error");
+            response.put("message", "An error occurred while posting the review.");
+            return response;
         }
     }
+
 
     @Cacheable(value = "reviews", key = "#productId")
     public Map<String, Object> getReviews(Long productId) {
