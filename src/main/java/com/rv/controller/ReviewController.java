@@ -6,8 +6,10 @@ import com.rv.service.ReviewService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -22,12 +24,12 @@ public class ReviewController {
     }
 
     @PostMapping("/review/add-review/{productId}")
-    public ResponseEntity<?> addReview(@RequestHeader("Authorization") String token, @PathVariable Long productId, @RequestBody ReviewRequest reviewRequest) {
+    public ResponseEntity<?> addReview(@RequestHeader("Authorization") String token, @PathVariable Long productId, @RequestPart ReviewRequest reviewRequest, @RequestPart(required = false) List<MultipartFile> images) {
         if (token == null || token.isEmpty()) {
             return new ResponseEntity<>("Authentication is missing", HttpStatus.UNAUTHORIZED);
         }
         String authToken= token.substring(7);
-        return reviewService.addReview(authToken, productId, reviewRequest);
+        return new ResponseEntity<>( reviewService.addReview(authToken, productId, reviewRequest, images), HttpStatus.OK);
     }
 
     @GetMapping("/review/get-reviews/{productId}")

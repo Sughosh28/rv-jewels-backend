@@ -1,9 +1,10 @@
 package com.rv.dto;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class ReviewRequest {
+public class ReviewRequest implements Serializable {
     private Boolean verifiedPurchase;
     private List<String> reviewImages;
     private Integer rating;
