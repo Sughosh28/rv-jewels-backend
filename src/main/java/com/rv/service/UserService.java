@@ -1,8 +1,10 @@
 package com.rv.service;
 
+import com.rv.dto.AuthTokenDTO;
 import com.rv.dto.LoginDTO;
 import com.rv.dto.PasswordResetRequestDTO;
 import com.rv.jwt.JwtService;
+import com.rv.model.RefreshToken;
 import com.rv.model.UserEntity;
 import com.rv.repository.UserRepository;
 import com.rv.userdetails.PlatformUserDetailsService;
@@ -39,6 +41,9 @@ public class UserService {
 
     private final JwtService jwtService;
     private final OTPService otpService;
+
+    @Autowired
+    private RefreshTokenService refreshTokenService;
 
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, PlatformUserDetailsService platformUserDetailsService, JwtService jwtService, OTPService otpService,MailService mailService) {
         this.userRepository = userRepository;
@@ -77,27 +82,29 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<?> loginUser(LoginDTO loginDTO) {
+    public AuthTokenDTO loginUser(LoginDTO loginDTO) {
         try {
-
-            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDTO.username(), loginDTO.password()));
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginDTO.username(), loginDTO.password())
+            );
 
             if (authentication != null && authentication.isAuthenticated()) {
+                RefreshToken refreshToken = refreshTokenService.generateRefreshToken(loginDTO.username());
                 String token = jwtService.generateToken(platformUserDetailsService.loadUserByUsername(loginDTO.username()));
-                String role = platformUserDetailsService.loadUserByUsername(loginDTO.username()).getAuthorities().iterator().next().getAuthority();
-                Map<String, Object> response = new HashMap<>();
-                response.put("token", token);
-                response.put("role", role);
-                return new ResponseEntity<>(response, HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>("User not found or authentication failed.", HttpStatus.NOT_FOUND);
+                String role = platformUserDetailsService.loadUserByUsername(loginDTO.username())
+                        .getAuthorities().iterator().next().getAuthority();
+
+                AuthTokenDTO authTokenDto = new AuthTokenDTO();
+                authTokenDto.setAccessToken(token);
+                authTokenDto.setRefreshToken(refreshToken.getToken());
+                authTokenDto.setRole(role);
+                return authTokenDto;
+            }
+            else{
+                throw new BadCredentialsException("Invalid credentials!");
             }
         } catch (BadCredentialsException e) {
-            e.printStackTrace();
-            return new ResponseEntity<>("Invalid credentials!", HttpStatus.UNAUTHORIZED);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>("Internal server error!", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new BadCredentialsException("Invalid credentials!");
         }
     }
 

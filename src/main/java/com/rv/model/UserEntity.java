@@ -1,5 +1,6 @@
 package com.rv.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rv.model.abstracts.UserEntityAbstract;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
@@ -21,8 +22,10 @@ public class UserEntity extends UserEntityAbstract implements Serializable {
 
     @Pattern(
             regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$",
+
             message = "Password must be minimum 8 characters, contain at least one uppercase letter, one lowercase letter, one number and one special character"
     )
+    @JsonIgnore
     @Column(nullable = false)
     private String password;
     @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "Invalid email address format")
