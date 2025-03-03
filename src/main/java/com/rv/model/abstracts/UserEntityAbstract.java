@@ -13,7 +13,7 @@ import java.util.List;
 @MappedSuperclass
 public class UserEntityAbstract implements Serializable {
 
-    @Size(min = 10, max = 10, message = "Phone number must be exactly 10 digits")
+    @Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be exactly 10 digits")
     private String phoneNumber;
     private String address;
     private LocalDate registrationDate;
