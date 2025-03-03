@@ -4,6 +4,7 @@ import com.rv.model.abstracts.UserEntityAbstract;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.io.Serializable;
@@ -18,10 +19,13 @@ public class UserEntity extends UserEntityAbstract implements Serializable {
     @Column(unique = true)
     private String username;
 
-    @Size(min = 8, message = "Password must be 8 characters long.")
+    @Pattern(
+            regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$",
+            message = "Password must be minimum 8 characters, contain at least one uppercase letter, one lowercase letter, one number and one special character"
+    )
     @Column(nullable = false)
     private String password;
-    @Email(message = "Invalid email address")
+    @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "Invalid email address format")
     @Valid
     private String email;
 
