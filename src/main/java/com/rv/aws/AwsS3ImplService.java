@@ -14,8 +14,11 @@ import java.util.List;
 @Service
 public class AwsS3ImplService implements AwsMethodsInterface {
 
-    @Autowired
-    private AmazonS3 client;
+    private final AmazonS3 client;
+
+    public AwsS3ImplService(AmazonS3 client) {
+        this.client = client;
+    }
 
     @Value("${app.aws.s3.bucket}")
     private String bucketName;

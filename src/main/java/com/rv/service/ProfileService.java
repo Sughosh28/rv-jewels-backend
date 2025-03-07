@@ -20,14 +20,15 @@ import java.util.Optional;
 public class ProfileService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final AwsS3ImplService awsS3ImplService;
 
-    public ProfileService(UserRepository userRepository, JwtService jwtService) {
+    public ProfileService(UserRepository userRepository, JwtService jwtService,AwsS3ImplService awsS3ImplService) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
+        this.awsS3ImplService = awsS3ImplService;
     }
 
-    @Autowired
-    private AwsS3ImplService awsS3ImplService;
+
 
     @Cacheable(value = "userProfiles", key = "#token")
     public UserProfileResponseDTO getUserProfile(String token) {

@@ -5,6 +5,7 @@ import com.rv.dto.ProductListResponseDTO;
 import com.rv.dto.ProductPriceRangeListDTO;
 import com.rv.dto.ProductResponseDTO;
 import com.rv.dto.ProductSearchResponse;
+import com.rv.exceptions.ProductException;
 import com.rv.model.Products;
 import com.rv.repository.ProductRepository;
 import org.springframework.cache.annotation.CacheEvict;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
@@ -32,10 +34,10 @@ public class ProductService {
         this.awsS3ImplService = awsS3ImplService;
     }
 
-    public ResponseEntity<?> addNewProduct(Products product, List<MultipartFile> images) {
-        try {
+    public ResponseEntity<?> addNewProduct(Products product, List<MultipartFile> images) throws IOException {
+
             if (product.getName() == null || product.getPrice() == null) {
-                return new ResponseEntity<>("Product name and price are required!", HttpStatus.BAD_REQUEST);
+                throw new ProductException("Product name and price are required!");
             }
 
             List<String> imageUrls = (images != null && !images.isEmpty())
@@ -46,10 +48,6 @@ public class ProductService {
             Products savedProduct = productRepository.save(product);
 
             return new ResponseEntity<>(savedProduct, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-
 
 }
 
@@ -81,8 +79,13 @@ public class ProductService {
     public ResponseEntity<?> updateProduct(Long productId, Products product) {
         try {
             Products productEntity = productRepository.findById(productId)
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
-
+                    .orElseThrow(() -> new ProductException("Product not found"));
+            if (product.getPrice().compareTo(BigDecimal.ZERO) < 0) {
+                throw new ProductException("Product price cannot be negative");
+            }
+            if (product.getStockQuantity() < 0) {
+                throw new ProductException("Stock quantity cannot be negative");
+            }
             productEntity.setName(product.getName());
             productEntity.setDescription(product.getDescription());
             productEntity.setPrice(product.getPrice());

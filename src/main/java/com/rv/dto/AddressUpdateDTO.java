@@ -12,8 +12,6 @@ public class AddressUpdateDTO {
         this.address = address;
     }
 
-
-
     public String getPinCode() {
         return pinCode;
     }

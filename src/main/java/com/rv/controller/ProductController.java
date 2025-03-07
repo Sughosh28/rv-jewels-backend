@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +25,7 @@ public class ProductController {
     }
 
     @PostMapping("/add-new-product")
-    public ResponseEntity<?> addNewProduct(@RequestHeader("Authorization") String token, @RequestPart("product") Products product, @RequestPart("images")List<MultipartFile> images) {
+    public ResponseEntity<?> addNewProduct(@RequestHeader("Authorization") String token, @RequestPart("product") Products product, @RequestPart("images")List<MultipartFile> images) throws IOException {
         if (token == null || token.isEmpty()) {
             return new ResponseEntity<>("Authentication is missing", HttpStatus.UNAUTHORIZED);
         }
@@ -42,50 +43,6 @@ public class ProductController {
         return new ResponseEntity<>(productService.addBulkProducts(products), HttpStatus.OK);
     }
 
-    @GetMapping("/all-products")
-    public ResponseEntity<?> getAllProducts(@RequestHeader("Authorization") String token) {
-        if (token == null || token.isEmpty()) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("message", "Authentication is missing");
-            errorResponse.put("status", "error");
-            return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
-        }
-
-        Map<String, Object> response = productService.getAllProducts();
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-
-    @GetMapping("/products/search")
-    public ResponseEntity<?> searchProducts(
-            @RequestHeader("Authorization") String token,
-            @RequestParam String keyword) {
-        if (token == null || token.isEmpty()) {
-            return new ResponseEntity<>("Authentication is missing", HttpStatus.UNAUTHORIZED);
-        }
-        return new ResponseEntity<>(productService.searchProducts(keyword), HttpStatus.OK);
-    }
-
-    @GetMapping("/product/{productId}")
-    public ResponseEntity<?> getProductById(
-            @RequestHeader("Authorization") String token,
-            @PathVariable Long productId) {
-        if (token == null || token.isEmpty()) {
-            return new ResponseEntity<>("Authentication is missing", HttpStatus.UNAUTHORIZED);
-        }
-        return new ResponseEntity<>(productService.getProductById(productId), HttpStatus.OK);
-    }
-
-    @GetMapping("/products/category/{category}")
-    public ResponseEntity<?> getProductsByCategory(
-            @RequestHeader("Authorization") String token,
-            @PathVariable Products.ProductCategory category) {
-        if (token == null || token.isEmpty()) {
-            return new ResponseEntity<>("Authentication is missing", HttpStatus.UNAUTHORIZED);
-        }
-        return new ResponseEntity<>(productService.getProductsByCategory(category), HttpStatus.OK);
-    }
-
     @GetMapping("/analytics/inventory")
     public ResponseEntity<?> getInventoryAnalytics(
             @RequestHeader("Authorization") String token) {
@@ -95,14 +52,6 @@ public class ProductController {
         return new ResponseEntity<>(productService.getInventoryAnalytics(), HttpStatus.OK);
     }
 
-    @GetMapping("/products/price-range")
-    public ResponseEntity<?> getProductsByPriceRange(@RequestHeader("Authorization") String token
-            , @RequestParam Double minPrice, @RequestParam Double maxPrice) {
-        if (token == null || token.isEmpty()) {
-            return new ResponseEntity<>("Authentication is missing", HttpStatus.UNAUTHORIZED);
-        }
-        return new ResponseEntity<>(productService.getProductsByPriceRange(minPrice, maxPrice), HttpStatus.OK);
-    }
 
     @GetMapping("/analytics/category-performance")
     public ResponseEntity<?> getCategoryAnalytics(

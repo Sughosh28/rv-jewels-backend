@@ -1,31 +1,11 @@
 package com.rv.dto;
 
-public class AuthTokenDTO {
-    String accessToken;
-    String refreshToken;
-    String role;
+import java.io.Serializable;
 
-    public String getRole() {
-        return role;
-    }
+public record AuthTokenDTO (
+    String accessToken,
+    String refreshToken,
+    String role
+) implements Serializable {
 
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public String getAccessToken() {
-        return accessToken;
-    }
-
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
-    }
-
-    public String getRefreshToken() {
-        return refreshToken;
-    }
-
-    public void setRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
-    }
 }
