@@ -4,9 +4,12 @@ import com.rv.dto.AuthTokenDTO;
 import com.rv.dto.LoginDTO;
 import com.rv.dto.PasswordResetRequestDTO;
 import com.rv.jwt.JwtService;
+import com.rv.model.Products;
 import com.rv.model.RefreshToken;
 import com.rv.model.UserEntity;
 import com.rv.repository.RefreshTokenRepository;
+import com.rv.service.OrderService;
+import com.rv.service.ProductService;
 import com.rv.service.RefreshTokenService;
 import com.rv.service.UserService;
 import com.rv.userdetails.PlatformUserDetails;
@@ -20,30 +23,32 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/v1/user")
 public class UserController {
 
     private final UserService userService;
+    private final RefreshTokenService refreshTokenService;
+    private final JwtService jwtService;
+    private final PlatformUserDetailsService platformUserDetailsService;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final OrderService orderService;
+    private final ProductService productService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, RefreshTokenService refreshTokenService, JwtService jwtService, PlatformUserDetailsService platformUserDetailsService, RefreshTokenRepository refreshTokenRepository, OrderService orderService,ProductService productService) {
         this.userService = userService;
+        this.refreshTokenService = refreshTokenService;
+        this.jwtService = jwtService;
+        this.platformUserDetailsService = platformUserDetailsService;
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.orderService = orderService;
+        this.productService = productService;
     }
-
-    @Autowired
-    private RefreshTokenService refreshTokenService;
-    @Autowired
-    private JwtService jwtService;
-    @Autowired
-    private PlatformUserDetailsService platformUserDetailsService;
-    @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody @Valid UserEntity user) {
@@ -86,4 +91,41 @@ public class UserController {
         }
         throw new RuntimeException("Refresh token not found in database");
     }
+
+    @PostMapping("/place-order")
+    public ResponseEntity<?> createOrder(
+            @RequestHeader("Authorization") String token,
+            @RequestParam Long productId,
+            @RequestParam(defaultValue = "1") int quantity) {
+
+        if (token == null || token.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED"); // ✅ Let GlobalExceptionHandler handle it
+        }
+
+        String authToken = token.substring(7);
+        return ResponseEntity.ok(orderService.createOrder(authToken, productId, quantity));
+    }
+
+    @DeleteMapping("/cancel-order/{orderId}")
+    public ResponseEntity<?> cancelOrder(@RequestHeader("Authorization") String token, @PathVariable UUID orderId) {
+        if (token == null || token.isEmpty()) {
+            throw new RuntimeException("Authentication is missing");
+        }
+        String authToken = token.substring(7);
+        return new ResponseEntity<>(orderService.cancelOrder(authToken, orderId), HttpStatus.OK);
+
+    }
+
+    @GetMapping("/my-orders")
+    public ResponseEntity<?> getMyOrders(@RequestHeader("Authorization") String token) {
+        if (token == null || token.isEmpty()) {
+            throw new RuntimeException("Authentication is missing");
+        }
+
+        String authToken = token.substring(7);
+        return new ResponseEntity<>(orderService.getMyOrders(authToken), HttpStatus.OK);
+
+    }
+
+
 }
