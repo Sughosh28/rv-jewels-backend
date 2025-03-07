@@ -16,13 +16,13 @@ import java.io.IOException;
 public class ProfileController {
 
     private final ProfileService profileService;
-    private final  ProductService productService;
+    private final ProductService productService;
 
-public ProfileController(ProfileService profileService, ProductService productService) {
-    this.profileService=profileService;
-    this.productService=productService;
+    public ProfileController(ProfileService profileService, ProductService productService) {
+        this.profileService = profileService;
+        this.productService = productService;
 
-}
+    }
 
     @GetMapping("/profile")
     public UserProfileResponseDTO getUserProfile(@RequestHeader("Authorization") String token) {

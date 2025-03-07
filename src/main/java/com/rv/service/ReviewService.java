@@ -10,6 +10,7 @@ import com.rv.model.UserEntity;
 import com.rv.repository.ProductRepository;
 import com.rv.repository.ReviewRepository;
 import com.rv.repository.UserRepository;
+import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -30,19 +31,20 @@ public class ReviewService {
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final AwsS3ImplService awsS3ImplService;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    @Autowired
-    private AwsS3ImplService awsS3ImplService;
 
-    public ReviewService(ReviewRepository reviewRepository, JwtService jwtService, UserRepository userRepository, ProductRepository productRepository) {
+
+    public ReviewService(ReviewRepository reviewRepository, JwtService jwtService, UserRepository userRepository, ProductRepository productRepository, AwsS3ImplService awsS3ImplService,RedisTemplate<String, Object> redisTemplate) {
         this.reviewRepository = reviewRepository;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
+        this.awsS3ImplService = awsS3ImplService;
+        this.redisTemplate = redisTemplate;
     }
 
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
 
     @CacheEvict(value = {"reviews", "averageRating", "totalReviews"}, key = "#productId")
     public Map<String, Object> addReview(String token, Long productId, ReviewRequest reviewRequest, List<MultipartFile> images) {
@@ -56,12 +58,18 @@ public class ReviewService {
             Products product = productRepository.findById(productId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product does not exist!"));
 
+//            if (reviewRequest.getRating() < 1 || reviewRequest.getRating() > 5) {
+//                response.put("status", "error");
+//                response.put("message", "Rating must be between 1 and 5.");
+//                return response;
+//            }
             if (reviewRequest.getRating() < 1 || reviewRequest.getRating() > 5) {
-                response.put("status", "error");
-                response.put("message", "Rating must be between 1 and 5.");
-                return response;
+                throw new IllegalArgumentException("Rating must be between 1 and 5");
             }
 
+            if (images != null && images.stream().anyMatch(file -> file.isEmpty())) {
+                throw new FileUploadException("Empty file detected in upload");
+            }
             Review review = new Review();
             review.setUser(user);
             review.setReviewDate(LocalDateTime.now());

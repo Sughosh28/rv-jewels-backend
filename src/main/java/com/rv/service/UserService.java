@@ -6,6 +6,7 @@ import com.rv.dto.PasswordResetRequestDTO;
 import com.rv.jwt.JwtService;
 import com.rv.model.RefreshToken;
 import com.rv.model.UserEntity;
+import com.rv.repository.RefreshTokenRepository;
 import com.rv.repository.UserRepository;
 import com.rv.userdetails.PlatformUserDetailsService;
 import jakarta.mail.MessagingException;
@@ -18,41 +19,38 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 
 @Service
 public class UserService {
-
-
     private final UserRepository userRepository;
-
     private final PasswordEncoder passwordEncoder;
-
     private final AuthenticationManager authenticationManager;
-
     private final PlatformUserDetailsService platformUserDetailsService;
     private final MailService mailService;
-
     private final JwtService jwtService;
     private final OTPService otpService;
+    private final RefreshTokenService refreshTokenService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
-    @Autowired
-    private RefreshTokenService refreshTokenService;
-
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, PlatformUserDetailsService platformUserDetailsService, JwtService jwtService, OTPService otpService,MailService mailService) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, PlatformUserDetailsService platformUserDetailsService, MailService mailService, JwtService jwtService, OTPService otpService, RefreshTokenService refreshTokenService, RefreshTokenRepository refreshTokenRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.platformUserDetailsService = platformUserDetailsService;
+        this.mailService = mailService;
         this.jwtService = jwtService;
         this.otpService = otpService;
-        this.mailService = mailService;
+        this.refreshTokenService = refreshTokenService;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     public ResponseEntity<?> registerUser(UserEntity user) {
@@ -74,7 +72,7 @@ public class UserService {
             userEntity.setRegistrationDate(LocalDate.now());
             userEntity.setPinCode(user.getPinCode());
             userRepository.save(userEntity);
-            mailService.sendRegistrationEmail(user.getEmail(),user.getUsername(), "Thank you for registering with us. Your registration was successful.");
+            mailService.sendRegistrationEmail(user.getEmail(), user.getUsername(), "Thank you for registering with us. Your registration was successful.");
             return new ResponseEntity<>("Registration Successful!", HttpStatusCode.valueOf(201));
 
         } catch (Exception e) {
@@ -94,13 +92,8 @@ public class UserService {
                 String role = platformUserDetailsService.loadUserByUsername(loginDTO.username())
                         .getAuthorities().iterator().next().getAuthority();
 
-                AuthTokenDTO authTokenDto = new AuthTokenDTO();
-                authTokenDto.setAccessToken(token);
-                authTokenDto.setRefreshToken(refreshToken.getToken());
-                authTokenDto.setRole(role);
-                return authTokenDto;
-            }
-            else{
+                return new AuthTokenDTO(token, refreshToken.getToken(), role);
+            } else {
                 throw new BadCredentialsException("Invalid credentials!");
             }
         } catch (BadCredentialsException e) {
@@ -140,7 +133,7 @@ public class UserService {
         userRepository.save(user);
 
         otpService.clearOTP(user);
-        mailService.sendMailForPasswordReset(user.getEmail(),user.getUsername(), "Your password has been reset successfully.");
+        mailService.sendMailForPasswordReset(user.getEmail(), user.getUsername(), "Your password has been reset successfully.");
 
         return new ResponseEntity<>("Password updated successfully!", HttpStatus.OK);
     }
@@ -149,4 +142,20 @@ public class UserService {
         return String.format("%06d", new Random().nextInt(999999));
     }
 
+    public AuthTokenDTO refreshToken(RefreshToken request) {
+        String requestRefreshToken = request.getToken();
+        Optional<RefreshToken> tokenOptional = refreshTokenRepository.findByToken(requestRefreshToken);
+
+        if (tokenOptional.isPresent()) {
+            RefreshToken storedToken = tokenOptional.get();
+            RefreshToken validRefreshToken = refreshTokenService.verifyExpiration(storedToken);
+
+            UserDetails userDetails = platformUserDetailsService.loadUserByUsername(validRefreshToken.getUser().getUsername());
+            String newAccessToken = jwtService.generateToken(userDetails);
+            RefreshToken newRefreshToken = refreshTokenService.generateRefreshToken(validRefreshToken.getUser().getUsername());
+            return new AuthTokenDTO(newAccessToken, newRefreshToken.getToken(), userDetails.getAuthorities().iterator().next().getAuthority());
+        }
+        throw new RuntimeException("Refresh token not found in database");
+
+    }
 }

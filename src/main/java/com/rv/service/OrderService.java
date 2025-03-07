@@ -30,17 +30,16 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final ProductRepository productRepository;
+    private final JwtService jwtService;
+    private final UserRepository userRepository;
 
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(OrderRepository orderRepository, ProductRepository productRepository, JwtService jwtService, UserRepository userRepository) {
         this.orderRepository = orderRepository;
+        this.productRepository = productRepository;
+        this.jwtService = jwtService;
+        this.userRepository = userRepository;
     }
-
-    @Autowired
-    private ProductRepository productRepository;
-    @Autowired
-    private JwtService jwtService;
-    @Autowired
-    private UserRepository userRepository;
 
     @CacheEvict(value = {"orderDetails", "userOrders"}, key = "#authToken")
     @Transactional

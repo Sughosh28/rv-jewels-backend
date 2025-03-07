@@ -17,34 +17,9 @@ import java.util.UUID;
 public class OrderController {
 
     private final OrderService orderService;
+
     public OrderController(OrderService orderService) {
         this.orderService = orderService;
-
-    }
-    @Autowired
-    private JwtService jwtService;
-
-    @PostMapping("/place-order")
-    public ResponseEntity<?> createOrder(
-            @RequestHeader("Authorization") String token,
-            @RequestParam Long productId,
-            @RequestParam(defaultValue = "1") int quantity) {
-
-        if (token == null || token.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED"); // ✅ Let GlobalExceptionHandler handle it
-        }
-
-        String authToken = token.substring(7);
-        return ResponseEntity.ok(orderService.createOrder(authToken, productId, quantity));
-    }
-
-    @DeleteMapping("/cancel-order/{orderId}")
-    public ResponseEntity<?> cancelOrder(@RequestHeader("Authorization") String token, @PathVariable UUID orderId) {
-        if (token == null || token.isEmpty()) {
-            throw new RuntimeException("Authentication is missing");
-        }
-        String authToken = token.substring(7);
-        return new ResponseEntity<>(orderService.cancelOrder(authToken, orderId), HttpStatus.OK);
 
     }
 
@@ -67,16 +42,6 @@ public class OrderController {
         return new ResponseEntity<>(orderService.updateDeliveryStatus(authToken, orderId, status), HttpStatus.OK);
     }
 
-    @GetMapping("/my-orders")
-    public ResponseEntity<?> getMyOrders(@RequestHeader("Authorization") String token) {
-        if (token == null || token.isEmpty()) {
-            throw new RuntimeException("Authentication is missing");
-        }
-
-        String authToken = token.substring(7);
-        return new ResponseEntity<>(orderService.getMyOrders(authToken), HttpStatus.OK);
-
-    }
 
     @GetMapping("/order/{orderId}")
     public ResponseEntity<?> getOrderDetails(@RequestHeader("Authorization") String token, @PathVariable UUID orderId) {

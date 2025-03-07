@@ -55,6 +55,7 @@ public class SecurityConfig implements WebMvcConfigurer {
             registry.requestMatchers("/", "/api/v1/user/**","/v3/api-docs/**","/swagger-ui/**").permitAll();
             registry.requestMatchers("/api/v2/admin/**").hasRole("ADMIN");
             registry.requestMatchers("/api/v2/user/**").hasRole("USER");
+            registry.requestMatchers("/api/v1/end-user/**").hasAnyRole("USER", "ADMIN");
             registry.anyRequest().authenticated();
         })
                 .formLogin(AbstractHttpConfigurer::disable).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
