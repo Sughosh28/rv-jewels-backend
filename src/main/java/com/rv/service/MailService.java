@@ -24,7 +24,7 @@ public class MailService {
         this.userRepository = userRepository;
     }
 
-    @Async
+
     public void sendMailForOtp(String email, String otp) throws MessagingException {
         UserEntity user = userRepository.findByEmail(email);
         MimeMessage message = javaMailSender.createMimeMessage();
@@ -56,7 +56,6 @@ public class MailService {
         javaMailSender.send(message);
     }
 
-    @Async
     public void sendMailForPasswordReset(String email,String username, String s) throws MessagingException {
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);

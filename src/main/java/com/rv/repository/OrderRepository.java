@@ -13,4 +13,7 @@ import java.util.UUID;
 public interface OrderRepository extends JpaRepository<Orders, UUID> {
 
     List<Orders> findByUser(UserEntity userEntity);
+
+    @Query("select sum(o.totalAmount) from Orders o")
+    Object getTotalRevenue();
 }

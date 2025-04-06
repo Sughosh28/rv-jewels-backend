@@ -74,12 +74,7 @@ public class EndUserController {
         return new ResponseEntity<>(productService.getProductsByCategory(category), HttpStatus.OK);
     }
 
-    @GetMapping("/analytics/category-performance")
-    public ResponseEntity<?> getCategoryAnalytics(
-            @RequestHeader("Authorization") String token) {
-        if (token == null || token.isEmpty()) {
-            return new ResponseEntity<>("Authentication is missing", HttpStatus.UNAUTHORIZED);
-        }
-        return new ResponseEntity<>(productService.getCategoryAnalytics(), HttpStatus.OK);
-    }
+
+
+
 }

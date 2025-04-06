@@ -43,13 +43,6 @@ public class OrderController {
     }
 
 
-    @GetMapping("/order/{orderId}")
-    public ResponseEntity<?> getOrderDetails(@RequestHeader("Authorization") String token, @PathVariable UUID orderId) {
-        if (token == null || token.isEmpty()) {
-            throw new RuntimeException("Authentication is missing");
-        }
-        String authToken = token.substring(7);
-        return new ResponseEntity<>(orderService.getOrderDetails(authToken, orderId), HttpStatus.OK);
-    }
+
 
 }
