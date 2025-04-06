@@ -42,7 +42,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                 .allowedOrigins("*")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("Authorization", "*")
-                .allowCredentials(false);
+                .allowCredentials(true);
     }
 
 
@@ -97,7 +97,7 @@ public class SecurityConfig implements WebMvcConfigurer {
         corsConfiguration.setAllowedOrigins(Arrays.asList("*"));
         corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         corsConfiguration.setAllowedHeaders(Arrays.asList("*"));
-        corsConfiguration.setAllowCredentials(false);
+        corsConfiguration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfiguration);
         return source;

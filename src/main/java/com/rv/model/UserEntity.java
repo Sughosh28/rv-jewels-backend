@@ -25,8 +25,7 @@ public class UserEntity extends UserEntityAbstract implements Serializable {
 
             message = "Password must be minimum 8 characters, contain at least one uppercase letter, one lowercase letter, one number and one special character"
     )
-    @JsonIgnore
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private String password;
     @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "Invalid email address format")
     @Valid

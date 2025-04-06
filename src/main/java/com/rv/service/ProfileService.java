@@ -83,7 +83,7 @@ public class ProfileService {
                 return new ResponseEntity<>("User does not exist!", HttpStatus.UNAUTHORIZED);
             }
             UserEntity userEntity = user.get();
-            userEntity.setEmail(emailUpdateRequestDTO.getEmail());
+            userEntity.setEmail(emailUpdateRequestDTO.email());
             userRepository.save(userEntity);
             return new ResponseEntity<>("Email updated successfully!", HttpStatus.OK);
         } catch (Exception e) {
@@ -100,8 +100,8 @@ public class ProfileService {
                 return new ResponseEntity<>("User does not exist!", HttpStatus.UNAUTHORIZED);
             }
             UserEntity userEntity = user.get();
-            userEntity.setAddress(addressUpdateDTO.getAddress());
-            userEntity.setPinCode(addressUpdateDTO.getPinCode());
+            userEntity.setAddress(addressUpdateDTO.address());
+            userEntity.setPinCode(addressUpdateDTO.pinCode());
             userRepository.save(userEntity);
             return new ResponseEntity<>("Address updated successfully!", HttpStatus.OK);
         } catch (Exception e) {

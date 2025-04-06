@@ -7,7 +7,9 @@ import com.rv.dto.ProductResponseDTO;
 import com.rv.dto.ProductSearchResponse;
 import com.rv.exceptions.ProductException;
 import com.rv.model.Products;
+import com.rv.repository.OrderRepository;
 import com.rv.repository.ProductRepository;
+import com.rv.repository.UserRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
@@ -27,13 +29,19 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ReviewService reviewService;
     private final AwsS3ImplService awsS3ImplService;
+    private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
 
-    public ProductService(ProductRepository productRepository, ReviewService reviewService,AwsS3ImplService awsS3ImplService) {
+
+    public ProductService(ProductRepository productRepository, ReviewService reviewService,AwsS3ImplService awsS3ImplService, UserRepository userRepository, OrderRepository orderRepository) {
         this.productRepository = productRepository;
         this.reviewService = reviewService;
         this.awsS3ImplService = awsS3ImplService;
+        this.userRepository = userRepository;
+        this.orderRepository = orderRepository;
     }
 
+    @CacheEvict(value = {"products", "allProducts", "productsByCategory"}, allEntries = true)
     public ResponseEntity<?> addNewProduct(Products product, List<MultipartFile> images) throws IOException {
 
             if (product.getName() == null || product.getPrice() == null) {
@@ -134,19 +142,9 @@ public class ProductService {
     }
 
     @Cacheable(value = "products", key = "#productId")
-    public ProductResponseDTO getProductById(Long productId) {
-        return productRepository.findById(productId)
-                .map(product -> {
-                    Double averageRating = reviewService.calculateProductAverageRating(productId);
-                    return new ProductResponseDTO(
-                            product.getId(),
-                            product.getName(),
-                            product.getDescription(),
-                            product.getPrice(),
-                            averageRating,
-                            "Product retrieved successfully");
-                })
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+    public Optional<Products> getProductById(Long productId) {
+        return productRepository.findById(productId);
+
     }
 
 
@@ -201,15 +199,7 @@ public class ProductService {
     }
 
 
-    public ResponseEntity<?> addBulkProducts(List<Products> products) {
 
-        try {
-            productRepository.saveAll(products);
-            return new ResponseEntity<>("Products added successfully!", HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-    }
 
     @CacheEvict(value = {"products", "allProducts", "productsByCategory"}, allEntries = true)
     public ResponseEntity<?> updateProductStock(Long productId, Integer quantity) {
@@ -299,4 +289,19 @@ public class ProductService {
     }
 
 
+    public Object getTotalProducts() {
+        return productRepository.count();
+    }
+
+    public Object getTotalUsers() {
+        return userRepository.count();
+    }
+
+    public Object getTotalOrders() {
+        return orderRepository.count();
+    }
+
+    public Object getTotalRevenue() {
+        return orderRepository.getTotalRevenue();
+    }
 }

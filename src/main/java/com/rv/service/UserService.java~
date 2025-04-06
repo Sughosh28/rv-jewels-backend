@@ -73,11 +73,13 @@ public class UserService {
             userEntity.setRole(user.getRole());
             userEntity.setRegistrationDate(LocalDate.now());
             userEntity.setPinCode(user.getPinCode() != null ? user.getPinCode() : "000000");
+            System.out.println(userEntity.getRegistrationDate());
             userRepository.save(userEntity);
             mailService.sendRegistrationEmail(user.getEmail(), user.getUsername(), "Thank you for registering with us. Your registration was successful.");
             return new ResponseEntity<>("Registration Successful!", HttpStatusCode.valueOf(201));
 
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             return new ResponseEntity<>("Registration Failed!", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

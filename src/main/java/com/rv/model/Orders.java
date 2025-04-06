@@ -44,13 +44,11 @@ public class Orders extends BaseOrder {
     public enum OrderStatus {
         PLACED,
         CONFIRMED,
-        PROCESSING,
-        READY_TO_SHIP,
         SHIPPED,
         DELIVERED,
         CANCELLED,
         REFUNDED,
-        COMPLETED
+
     }
 
     public UserEntity getUser() {

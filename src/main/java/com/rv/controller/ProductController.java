@@ -32,16 +32,7 @@ public class ProductController {
         return new ResponseEntity<>(productService.addNewProduct(product, images), HttpStatus.OK);
     }
 
-    @PostMapping("/products/bulk")
-    public ResponseEntity<?> addBulkProducts(
-            @RequestHeader("Authorization") String token,
-            @RequestBody List<Products> products) {
-        if (token == null || token.isEmpty()) {
-            return new ResponseEntity<>("Authentication is missing", HttpStatus.UNAUTHORIZED);
 
-        }
-        return new ResponseEntity<>(productService.addBulkProducts(products), HttpStatus.OK);
-    }
 
     @GetMapping("/analytics/inventory")
     public ResponseEntity<?> getInventoryAnalytics(
@@ -88,5 +79,37 @@ public class ProductController {
             return new ResponseEntity<>("Authentication is missing", HttpStatus.UNAUTHORIZED);
         }
         return new ResponseEntity<>(productService.updateProductStock(productId, quantity), HttpStatus.OK);
+    }
+
+    @GetMapping("/total-products")
+    public ResponseEntity<?> getTotalProducts(@RequestHeader("Authorization") String token) {
+        if (token == null || token.isEmpty()) {
+            return new ResponseEntity<>("Authentication is missing", HttpStatus.UNAUTHORIZED);
+        }
+        return new ResponseEntity<>(productService.getTotalProducts(), HttpStatus.OK);
+    }
+
+    @GetMapping("/total-users")
+    public ResponseEntity<?> getTotalUsers(@RequestHeader("Authorization") String token) {
+        if (token == null || token.isEmpty()) {
+            return new ResponseEntity<>("Authentication is missing", HttpStatus.UNAUTHORIZED);
+        }
+        return new ResponseEntity<>(productService.getTotalUsers(), HttpStatus.OK);
+    }
+
+    @GetMapping("/total-orders")
+    public ResponseEntity<?> getTotalOrders(@RequestHeader("Authorization") String token) {
+        if (token == null || token.isEmpty()) {
+            return new ResponseEntity<>("Authentication is missing", HttpStatus.UNAUTHORIZED);
+        }
+        return new ResponseEntity<>(productService.getTotalOrders(), HttpStatus.OK);
+    }
+
+    @GetMapping("/total-revenue")
+    public ResponseEntity<?> getTotalRevenue(@RequestHeader("Authorization") String token) {
+        if (token == null || token.isEmpty()) {
+            return new ResponseEntity<>("Authentication is missing", HttpStatus.UNAUTHORIZED);
+        }
+        return new ResponseEntity<>(productService.getTotalRevenue(), HttpStatus.OK);
     }
 }

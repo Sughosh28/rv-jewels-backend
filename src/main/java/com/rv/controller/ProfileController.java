@@ -72,13 +72,7 @@ public class ProfileController {
         return new ResponseEntity<>(profileService.updatePhoneNumber(authToken, phoneUpdateDTO), HttpStatus.OK);
     }
 
-    @GetMapping("/all-products")
-    public ResponseEntity<?> getAllProducts(@RequestHeader("Authorization") String token) {
-        if (token == null || token.isEmpty()) {
-            return new ResponseEntity<>("Authentication is missing", HttpStatus.UNAUTHORIZED);
-        }
-        return new ResponseEntity<>(productService.getAllProducts(), HttpStatus.OK);
-    }
+
 
     @PostMapping("/profile-picture")
     public ResponseEntity<?> updateProfilePicture(@RequestHeader("Authorization") String token, @RequestPart("image") MultipartFile image) throws IOException {
