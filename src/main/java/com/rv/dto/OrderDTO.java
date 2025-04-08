@@ -3,12 +3,13 @@ package com.rv.dto;
 
 import com.rv.model.Orders;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-public class OrderDTO {
+public class OrderDTO implements Serializable {
     private UUID id;
     private UserDTO userDTO;
     private String status;

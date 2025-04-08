@@ -1,6 +1,8 @@
 package com.rv.dto;
 
-public class PasswordResetRequestDTO {
+import java.io.Serializable;
+
+public class PasswordResetRequestDTO implements Serializable {
     String email;
     String otp;
     String newPassword;

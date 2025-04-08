@@ -1,6 +1,8 @@
 package com.rv.dto;
 
-public class PhoneNumberUpdateRequestDTO {
+import java.io.Serializable;
+
+public class PhoneNumberUpdateRequestDTO implements Serializable {
     String phoneNumber;
 
     public String getPhoneNumber() {

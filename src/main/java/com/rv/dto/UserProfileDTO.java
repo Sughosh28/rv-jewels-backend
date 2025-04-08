@@ -1,6 +1,8 @@
 package com.rv.dto;
 
-public class UserProfileDTO {
+import java.io.Serializable;
+
+public class UserProfileDTO implements Serializable {
     String username;
 
     public String getUsername() {

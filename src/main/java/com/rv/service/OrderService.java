@@ -43,9 +43,9 @@ public class OrderService {
 
     @CacheEvict(value = {"orderDetails", "userOrders"}, key = "#authToken")
     @Transactional
-    public Map<String, Object> createOrder(String token, Long productId, int quantity) {
+    public Map<String, Object> createOrder(String authToken, Long productId, int quantity) {
 
-        Long userId = jwtService.extractUserId(token);
+        Long userId = jwtService.extractUserId(authToken);
 
         UserEntity userEntity = userRepository.findById(userId)
                 .orElse(null);
@@ -116,6 +116,7 @@ public class OrderService {
         }
 
         orderEntity.setStatus(Orders.OrderStatus.CANCELLED);
+        orderEntity.setDeliveryStatus(Orders.DeliveryStatus.RETURNED);
         orderRepository.save(orderEntity);
         return Map.of("message", "Order canceled successfully", "orderId", orderId);
     }
@@ -139,7 +140,7 @@ public class OrderService {
     }
 
     @Transactional
-    @Cacheable(value = "userOrders", key = "#authToken")
+    @Cacheable(value = "userOrders", key = "#authToken", unless = "#result == null")
     public Map<String, Object> getMyOrders(String authToken) {
         Long userId = jwtService.extractUserId(authToken);
 

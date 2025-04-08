@@ -1,9 +1,10 @@
 package com.rv.dto;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 
-public class ProductDTO {
+public class ProductDTO implements Serializable {
     private Long id;
     private String name;
     private BigDecimal price;
