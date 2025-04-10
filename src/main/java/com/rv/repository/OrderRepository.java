@@ -16,4 +16,5 @@ public interface OrderRepository extends JpaRepository<Orders, UUID> {
 
     @Query("select sum(o.totalAmount) from Orders o")
     Object getTotalRevenue();
+
 }
