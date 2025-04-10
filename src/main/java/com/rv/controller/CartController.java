@@ -13,12 +13,12 @@ public class CartController {
     }
 
     @PostMapping("/add-to-cart")
-    public ResponseEntity<?> addToCart(@RequestHeader("Authorization") String token, @RequestParam Long productId, @RequestParam int quantity) {
+    public ResponseEntity<?> addToCart(@RequestHeader("Authorization") String token, @RequestParam Long productId) {
         if (token == null || token.isEmpty()) {
             throw new RuntimeException("Authentication is missing");
         }
         String authToken = token.substring(7);
-        return cartService.addToCart(authToken, productId, quantity);
+        return cartService.addToCart(authToken, productId);
     }
 
     @GetMapping("/cart")
@@ -30,14 +30,6 @@ public class CartController {
         return cartService.getCart(authToken);
     }
 
-
-    @PutMapping("/update-quantity")
-    public ResponseEntity<?> updateCartItemQuantity(
-            @RequestHeader("Authorization") String authToken,
-            @RequestParam Long productId,
-            @RequestParam int quantity) {
-        return cartService.updateCartItemQuantity(authToken.substring(7), productId, quantity);
-    }
 
     @DeleteMapping("/remove")
     public ResponseEntity<?> removeFromCart(

@@ -8,4 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface OrderItemsRepository extends JpaRepository<OrderItems, UUID> {
+    boolean existsByUserIdAndProductId(Long userId, Long productId);
 }

@@ -17,7 +17,7 @@ public class BaseCart implements Serializable {
     private Long id;
     private LocalDate date;
     private LocalTime time;
-    private int quantity;
+
 
     public Long getId() {
         return id;
@@ -45,11 +45,5 @@ public class BaseCart implements Serializable {
     }
 
 
-    public int getQuantity() {
-        return quantity;
-    }
 
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
 }

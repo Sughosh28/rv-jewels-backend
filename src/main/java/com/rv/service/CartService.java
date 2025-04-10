@@ -34,7 +34,7 @@ public class CartService {
         this.userRepository = userRepository;
     }
 
-    public ResponseEntity<?> addToCart(String authToken, Long productId, int quantity) {
+    public ResponseEntity<?> addToCart(String authToken, Long productId) {
         Long userId = jwtService.extractUserId(authToken);
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -49,14 +49,12 @@ public class CartService {
         if (existingCartItem.isPresent()) {
             // Update quantity if product already in cart
             Cart cartItem = existingCartItem.get();
-            cartItem.setQuantity(cartItem.getQuantity() + quantity);
             cartRepository.save(cartItem);
         } else {
             // Create new cart item
             Cart newCartItem = new Cart();
             newCartItem.setUser(user);
             newCartItem.setProduct(product);
-            newCartItem.setQuantity(quantity);
             newCartItem.setDate(LocalDate.now());
             newCartItem.setTime(LocalTime.now());
             cartRepository.save(newCartItem);
@@ -77,7 +75,6 @@ public class CartService {
         for (Cart cartItem : cartItems) {
             CartResponseDTO cartResponseDTO = new CartResponseDTO();
             cartResponseDTO.setId(cartItem.getId());
-            cartResponseDTO.setQuantity(cartItem.getQuantity());
             cartResponseDTO.setProduct(cartItem.getProduct());
             cartResponseDTO.setUser(new UserBasicInfoDTO(user.getUsername(), user.getEmail(), user.getId()));
             cartResponseDTOs.add(cartResponseDTO);
@@ -88,30 +85,7 @@ public class CartService {
         return ResponseEntity.ok(cartResponseDTOs);
     }
 
-    @Transactional
-    public ResponseEntity<?> updateCartItemQuantity(String authToken, Long productId, int quantity) {
-        if (quantity <= 0) {
-            return ResponseEntity.badRequest().body("Quantity must be greater than 0");
-        }
 
-        Long userId = jwtService.extractUserId(authToken);
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Products product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
-
-        Optional<Cart> cartItemOpt = cartRepository.findByUserAndProduct(user, product);
-        if (cartItemOpt.isEmpty()) {
-            return ResponseEntity.badRequest().body("Item not found in cart");
-        }
-
-        Cart cartItem = cartItemOpt.get();
-        cartItem.setQuantity(quantity);
-        cartRepository.save(cartItem);
-
-        return ResponseEntity.ok("Cart updated successfully");
-    }
 
     public ResponseEntity<?> removeFromCart(String substring, Long productId) {
         Long userId = jwtService.extractUserId(substring);

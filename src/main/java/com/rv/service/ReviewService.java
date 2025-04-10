@@ -7,9 +7,7 @@ import com.rv.jwt.JwtService;
 import com.rv.model.Products;
 import com.rv.model.Review;
 import com.rv.model.UserEntity;
-import com.rv.repository.ProductRepository;
-import com.rv.repository.ReviewRepository;
-import com.rv.repository.UserRepository;
+import com.rv.repository.*;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -33,16 +31,18 @@ public class ReviewService {
     private final ProductRepository productRepository;
     private final AwsS3ImplService awsS3ImplService;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final OrderItemsRepository orderItemsRepository;
 
 
 
-    public ReviewService(ReviewRepository reviewRepository, JwtService jwtService, UserRepository userRepository, ProductRepository productRepository, AwsS3ImplService awsS3ImplService,RedisTemplate<String, Object> redisTemplate) {
+    public ReviewService(ReviewRepository reviewRepository, JwtService jwtService, UserRepository userRepository, ProductRepository productRepository, AwsS3ImplService awsS3ImplService,RedisTemplate<String, Object> redisTemplate,OrderItemsRepository orderItemsRepository) {
         this.reviewRepository = reviewRepository;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
         this.awsS3ImplService = awsS3ImplService;
         this.redisTemplate = redisTemplate;
+        this.orderItemsRepository = orderItemsRepository;
     }
 
 
@@ -58,11 +58,16 @@ public class ReviewService {
             Products product = productRepository.findById(productId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product does not exist!"));
 
+            if (!orderItemsRepository.existsByUserIdAndProductId(userId, productId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You must have placed an order for this product to post a review.");
+            }
+
 //            if (reviewRequest.getRating() < 1 || reviewRequest.getRating() > 5) {
 //                response.put("status", "error");
 //                response.put("message", "Rating must be between 1 and 5.");
 //                return response;
 //            }
+
             if (reviewRequest.getRating() < 1 || reviewRequest.getRating() > 5) {
                 throw new IllegalArgumentException("Rating must be between 1 and 5");
             }
